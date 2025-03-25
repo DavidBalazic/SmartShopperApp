@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"context"
-	"github.com/DavidBalazic/SmartShopperApp/proto"
-	"github.com/DavidBalazic/SmartShopperApp/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
+	"github.com/DavidBalazic/SmartShopperApp/internal/services"
 )
 
 type ProductController struct {

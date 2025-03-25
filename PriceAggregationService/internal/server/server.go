@@ -6,10 +6,10 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
-	"github.com/DavidBalazic/SmartShopperApp/controllers"
-	"github.com/DavidBalazic/SmartShopperApp/proto"
-	"github.com/DavidBalazic/SmartShopperApp/services"
-	"github.com/DavidBalazic/SmartShopperApp/repo"
+	"github.com/DavidBalazic/SmartShopperApp/internal/controllers"
+	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
+	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
 )
 
 func StartGRPCServer() {

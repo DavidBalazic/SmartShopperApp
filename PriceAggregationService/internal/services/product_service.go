@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/DavidBalazic/SmartShopperApp/repo"
-	"github.com/DavidBalazic/SmartShopperApp/models"
+	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
+	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 )
 
 type ProductService struct {

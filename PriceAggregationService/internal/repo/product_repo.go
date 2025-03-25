@@ -1,7 +1,7 @@
 package repo
 
 import (
-	"github.com/DavidBalazic/SmartShopperApp/models"
+	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 )
 
 type ProductRepository interface {
