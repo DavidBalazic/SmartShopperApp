@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 	"time"
-
+	// "github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,10 +19,16 @@ var (
 
 func ConnectDB() {
 	once.Do(func() {
-		uri := os.Getenv("MONGODB_URI")
+		// load := godotenv.Load()
+		// if load != nil {
+		// 	log.Fatalf("Error loading .env file")
+		//   }
+		  
+		uri := os.Getenv("MONGO_URI")
 		if uri == "" {
 			uri = "mongodb://localhost:27017"
 		}
+		log.Printf("Using MongoDB URI: %s", uri)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
