@@ -1,29 +1,36 @@
 package services
 
 import (
+	"context"
 	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
 	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 )
 
-type ProductService struct {
+type ProductService interface {
+	GetCheapestProduct(ctx context.Context, name string) (models.Product, error)
+	GetCheapestByStore(ctx context.Context, name, store string) (models.Product, error)
+	GetAllPrices(ctx context.Context, name string) ([]models.Product, error)
+}
+
+type productService struct {
 	repo repo.ProductRepository
 }
 
-func NewProductService(repo repo.ProductRepository) *ProductService {
-	return &ProductService{repo: repo}
+func NewProductService(repo repo.ProductRepository) ProductService {
+	return &productService{repo: repo}
 }
 
-func (s *ProductService) GetCheapestProduct(name string) (models.Product, error) {
-	product, err := s.repo.FindCheapestProduct(name)
+func (s *productService) GetCheapestProduct(ctx context.Context, name string) (models.Product, error) {
+	product, err := s.repo.FindCheapestProduct(ctx, name)
 	return product, err
 }
 
-func (s *ProductService) GetCheapestByStore(name, store string) (models.Product, error) {
-	product, err := s.repo.FindCheapestProductByStore(name, store)
+func (s *productService) GetCheapestByStore(ctx context.Context, name, store string) (models.Product, error) {
+	product, err := s.repo.FindCheapestProductByStore(ctx, name, store)
 	return product, err
 }
 
-func (s *ProductService) GetAllPrices(name string) ([]models.Product, error) {
-	products, err := s.repo.FindAllProductPrices(name)
+func (s *productService) GetAllPrices(ctx context.Context, name string) ([]models.Product, error) {
+	products, err := s.repo.FindAllProductPrices(ctx, name)
 	return products, err
 }
