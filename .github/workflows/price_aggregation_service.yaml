@@ -27,4 +27,6 @@ jobs:
         go mod tidy 
 
     - name: Run Tests
-      run: go test ./tests/... -v
+      run: |
+        cd PriceAggregationService
+        go test ./tests/... -v
