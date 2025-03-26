@@ -27,4 +27,4 @@ jobs:
         go mod tidy 
 
     - name: Run Tests
-      run: go test github.com/DavidBalazic/SmartShopperApp/tests/... -v
+      run: go test ./tests/... -v
