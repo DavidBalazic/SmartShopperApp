@@ -48,7 +48,7 @@ builder.Services.AddSingleton<IProductService, UserService.Services.ProductServi
 
 builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceClient>(options =>
 {
-    options.Address = new Uri("grpc://localhost:50051/"); 
+    options.Address = new Uri("http://localhost:50051/"); 
 });
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
