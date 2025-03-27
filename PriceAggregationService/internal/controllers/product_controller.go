@@ -15,12 +15,10 @@ type ProductController struct {
 	service services.ProductService
 }
 
-// NewProductServer creates a new gRPC server instance
 func NewProductController(service services.ProductService) *ProductController {
 	return &ProductController{service: service}
 }
 
-// GetCheapestProduct returns the cheapest product matching the name
 func (s *ProductController) GetCheapestProduct(ctx context.Context, req *proto.ProductRequest) (*proto.ProductResponse, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "product name is required")
@@ -34,7 +32,6 @@ func (s *ProductController) GetCheapestProduct(ctx context.Context, req *proto.P
 	return toProductResponse(product), nil
 }
 
-// GetCheapestByStore returns the cheapest product in a specific store
 func (s *ProductController) GetCheapestByStore(ctx context.Context, req *proto.StoreRequest) (*proto.ProductResponse, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "product name is required")
@@ -51,7 +48,6 @@ func (s *ProductController) GetCheapestByStore(ctx context.Context, req *proto.S
 	return toProductResponse(product), nil
 }
 
-// GetAllPrices returns all products matching the name
 func (s *ProductController) GetAllPrices(ctx context.Context, req *proto.ProductRequest) (*proto.ProductList, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "product name is required")
@@ -65,6 +61,19 @@ func (s *ProductController) GetAllPrices(ctx context.Context, req *proto.Product
 	return &proto.ProductList{
 		Products: toProtoProducts(products),
 	}, nil
+}
+
+func (s *ProductController) GetProductById(ctx context.Context, req *proto.ProductIdRequest) (*proto.ProductResponse, error) {
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "product ID is required")
+	}
+
+	product, err := s.service.GetProductById(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+
+	return toProductResponse(product), nil
 }
 
 // Helper functions for conversion

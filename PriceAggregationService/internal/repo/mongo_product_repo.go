@@ -8,6 +8,7 @@ import (
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/bson/primitive"
     "github.com/DavidBalazic/SmartShopperApp/internal/models"
     "github.com/DavidBalazic/SmartShopperApp/config"
 )
@@ -85,4 +86,27 @@ func (r *MongoProductRepository) FindAllProductPrices(ctx context.Context, name 
         products = append(products, product)
     }
     return products, nil
+}
+
+func (r *MongoProductRepository) FindProductById(ctx context.Context, id string) (models.Product, error) {
+	log.Printf("FindProductByID called with ID: %s", id)
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        log.Printf("Invalid ObjectId format: %v", err)
+        return models.Product{}, err
+    }
+
+    var product models.Product
+    err = r.Db.FindOne(ctx, bson.M{"_id": objectId}).Decode(&product)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            log.Printf("FindProductByID: No product found with ID: %s", id)
+        } else {
+            log.Printf("FindProductByID Error: %v", err)
+        }
+        return models.Product{}, err
+    }
+
+	return product, nil
 }

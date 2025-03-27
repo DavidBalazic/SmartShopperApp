@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/product.proto
+// source: internal/proto/product.proto
 
 package proto
 
@@ -22,6 +22,7 @@ const (
 	ProductService_GetCheapestProduct_FullMethodName = "/product.ProductService/GetCheapestProduct"
 	ProductService_GetAllPrices_FullMethodName       = "/product.ProductService/GetAllPrices"
 	ProductService_GetCheapestByStore_FullMethodName = "/product.ProductService/GetCheapestByStore"
+	ProductService_GetProductById_FullMethodName     = "/product.ProductService/GetProductById"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -31,6 +32,7 @@ type ProductServiceClient interface {
 	GetCheapestProduct(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductResponse, error)
 	GetAllPrices(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductList, error)
 	GetCheapestByStore(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*ProductResponse, error)
+	GetProductById(ctx context.Context, in *ProductIdRequest, opts ...grpc.CallOption) (*ProductResponse, error)
 }
 
 type productServiceClient struct {
@@ -71,6 +73,16 @@ func (c *productServiceClient) GetCheapestByStore(ctx context.Context, in *Store
 	return out, nil
 }
 
+func (c *productServiceClient) GetProductById(ctx context.Context, in *ProductIdRequest, opts ...grpc.CallOption) (*ProductResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetProductById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type ProductServiceServer interface {
 	GetCheapestProduct(context.Context, *ProductRequest) (*ProductResponse, error)
 	GetAllPrices(context.Context, *ProductRequest) (*ProductList, error)
 	GetCheapestByStore(context.Context, *StoreRequest) (*ProductResponse, error)
+	GetProductById(context.Context, *ProductIdRequest) (*ProductResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedProductServiceServer) GetAllPrices(context.Context, *ProductR
 }
 func (UnimplementedProductServiceServer) GetCheapestByStore(context.Context, *StoreRequest) (*ProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCheapestByStore not implemented")
+}
+func (UnimplementedProductServiceServer) GetProductById(context.Context, *ProductIdRequest) (*ProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -172,6 +188,24 @@ func _ProductService_GetCheapestByStore_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProductIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetProductById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_GetProductById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetProductById(ctx, req.(*ProductIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,7 +225,11 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetCheapestByStore",
 			Handler:    _ProductService_GetCheapestByStore_Handler,
 		},
+		{
+			MethodName: "GetProductById",
+			Handler:    _ProductService_GetProductById_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/product.proto",
+	Metadata: "internal/proto/product.proto",
 }
