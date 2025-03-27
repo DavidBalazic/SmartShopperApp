@@ -9,6 +9,8 @@ using UserService.Data;
 using UserService.Interfaces;
 using UserService.Models;
 using UserService.Services;
+using UserService.Protos;
+using Grpc.Net.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +43,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<IUserService, UsersService>();
+builder.Services.AddScoped<IGroceryListService, GroceryListService>();
+builder.Services.AddSingleton<IProductService, UserService.Services.ProductService>();
 
+builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceClient>(options =>
+{
+    options.Address = new Uri("grpc://localhost:50051/"); 
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
