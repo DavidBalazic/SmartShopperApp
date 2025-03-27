@@ -8,6 +8,7 @@ service ProductService {
     rpc GetCheapestProduct(ProductRequest) returns (ProductResponse);
     rpc GetAllPrices(ProductRequest) returns (ProductList);
     rpc GetCheapestByStore(StoreRequest) returns (ProductResponse);
+    rpc GetProductById(ProductIdRequest) returns (ProductResponse);
 }
 
 message ProductRequest {
@@ -36,4 +37,8 @@ message ProductList {
 message StoreRequest {
     string name = 1;
     string store = 2;
+}
+
+message ProductIdRequest {
+    string id = 1;
 }

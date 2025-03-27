@@ -10,6 +10,7 @@ type ProductService interface {
 	GetCheapestProduct(ctx context.Context, name string) (models.Product, error)
 	GetCheapestByStore(ctx context.Context, name, store string) (models.Product, error)
 	GetAllPrices(ctx context.Context, name string) ([]models.Product, error)
+	GetProductById(ctx context.Context, id string) (models.Product, error)
 }
 
 type productService struct {
@@ -33,4 +34,9 @@ func (s *productService) GetCheapestByStore(ctx context.Context, name, store str
 func (s *productService) GetAllPrices(ctx context.Context, name string) ([]models.Product, error) {
 	products, err := s.repo.FindAllProductPrices(ctx, name)
 	return products, err
+}
+
+func (s *productService) GetProductById(ctx context.Context, id string) (models.Product, error) {
+	product, err := s.repo.FindProductById(ctx, id)
+	return product, err
 }
