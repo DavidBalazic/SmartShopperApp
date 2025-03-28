@@ -26,10 +26,10 @@ jobs:
           dotnet-version: 8.0
 
       - name: Restore Dependencies
-        run: dotnet restore UserService/UserService.csproj
+        run: dotnet restore UserService/UserService/UserService.csproj
 
       - name: Build
-        run: dotnet build UserService/UserService.csproj --configuration Release --no-restore
+        run: dotnet build UserService/UserService/UserService.csproj --configuration Release --no-restore
 
       - name: Run Tests
-        run: dotnet test UserService.Tests/UserService.Tests.csproj --no-restore --verbosity normal
+        run: dotnet test UserService/UserService.Tests/UserService.Tests.csproj --no-restore --verbosity normal
