@@ -8,7 +8,6 @@ using UserService.Interfaces;
 
 namespace UserService.Services
 {
-    //
     public class UsersService : IUserService
     {
         private readonly UserManager<IdentityUser> _userManager;
