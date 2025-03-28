@@ -11,6 +11,7 @@ using UserService.Models;
 using UserService.Services;
 using UserService.Protos;
 using Grpc.Net.Client;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +45,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IUserService, UsersService>();
 builder.Services.AddScoped<IGroceryListService, GroceryListService>();
-builder.Services.AddSingleton<IProductService, UserService.Services.ProductService>();
+builder.Services.AddScoped<IProductService, UserService.Services.ProductService>();
 
-builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceClient>(options =>
+builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceClient>((serviceProvider, options) =>
 {
-    options.Address = new Uri("http://localhost:50051/"); 
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseAddress = configuration["Services:PriceAggregationService:BaseAddress"];
+    options.Address = new Uri(baseAddress); 
 });
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -92,12 +96,10 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 
