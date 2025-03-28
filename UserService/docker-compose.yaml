@@ -1,0 +1,9 @@
+services:
+  userservice:
+    image: userservice
+    ports:
+      - "5000:8080"
+    environment:
+      Services__PriceAggregationService__BaseAddress: "http://localhost:50051"
+    env_file:
+      - global.env
