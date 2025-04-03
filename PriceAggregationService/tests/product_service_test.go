@@ -7,8 +7,9 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
 	"github.com/DavidBalazic/SmartShopperApp/mocks"
-	gomock "go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	gomock "go.uber.org/mock/gomock"
 )
 
 func TestProductService_GetCheapestProduct(t *testing.T) {
@@ -107,5 +108,37 @@ func TestProductService_GetAllPrices(t *testing.T) {
 		assert.Equal(t, 2.99, results[0].Price)
 		assert.Equal(t, "Costco", results[1].Store)
 		assert.Equal(t, 3.49, results[1].Price)
+	})
+}
+
+func TestProductService_FindProductByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockProductRepository(ctrl)
+	productService := services.NewProductService(mockRepo)
+
+	ctx := context.Background()
+
+	t.Run("successfully find product by ID", func(t *testing.T) {
+		objectID := primitive.NewObjectID()
+		expectedProduct := models.Product{
+			ID:    objectID.Hex(),
+			Name:  "Milk",
+			Price: 1.49,
+			Store: "Aldi",
+		}
+
+		mockRepo.EXPECT().
+			FindProductById(gomock.Any(), objectID.Hex()).
+			Return(expectedProduct, nil)
+
+		result, err := productService.GetProductById(ctx, objectID.Hex())
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedProduct.ID, result.ID)
+		assert.Equal(t, expectedProduct.Name, result.Name)
+		assert.Equal(t, expectedProduct.Price, result.Price)
+		assert.Equal(t, expectedProduct.Store, result.Store)
 	})
 }

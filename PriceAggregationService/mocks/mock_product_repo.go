@@ -84,3 +84,18 @@ func (mr *MockProductRepositoryMockRecorder) FindCheapestProductByStore(ctx, nam
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCheapestProductByStore", reflect.TypeOf((*MockProductRepository)(nil).FindCheapestProductByStore), ctx, name, store)
 }
+
+// FindProductById mocks base method.
+func (m *MockProductRepository) FindProductById(ctx context.Context, id string) (models.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindProductById", ctx, id)
+	ret0, _ := ret[0].(models.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindProductById indicates an expected call of FindProductById.
+func (mr *MockProductRepositoryMockRecorder) FindProductById(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindProductById", reflect.TypeOf((*MockProductRepository)(nil).FindProductById), ctx, id)
+}
