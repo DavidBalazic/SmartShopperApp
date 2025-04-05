@@ -16,8 +16,6 @@ WORKDIR /app
 
 COPY --from=builder /app/smartshopper /app/smartshopper
 
-ENV MONGO_URI="mongodb://host.docker.internal:27017"
-
 EXPOSE 50051
 
 CMD ["/app/smartshopper"]
