@@ -1,0 +1,19 @@
+services:
+  userservice:
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+
+  priceaggregationservice:
+    build:
+      context: ./PriceAggregationService
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    env_file:
+      - .env
+    
