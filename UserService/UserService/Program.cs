@@ -19,29 +19,31 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-//    .AddEntityFrameworkStores<UserContext>();
-
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<UserContext>()
     .AddDefaultTokenProviders();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.SaveToken = true;
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters()
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)), // Secure Encoding
             ValidateIssuer = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidateAudience = true, // Secure default
+            ValidateAudience = true,
             ValidAudience = jwtSettings.Audience,
-            //ClockSkew = TimeSpan.FromMinutes(2)
+            ValidIssuer = jwtSettings.Issuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
         };
     });
+
 
 builder.Services.AddScoped<IUserService, UsersService>();
 builder.Services.AddScoped<IGroceryListService, GroceryListService>();
@@ -55,7 +57,6 @@ builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceC
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -106,7 +107,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.MapIdentityApi<IdentityUser>();
 app.MapControllers();
 
 app.Run();
