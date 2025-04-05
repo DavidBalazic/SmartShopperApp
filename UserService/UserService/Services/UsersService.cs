@@ -5,114 +5,120 @@ using System.Security.Claims;
 using System.Text;
 using UserService.DTOs;
 using UserService.Interfaces;
+using UserService.Models;
 
 namespace UserService.Services
 {
     public class UsersService : IUserService
     {
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public UsersService(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration)
+        public UsersService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
+            _roleManager = roleManager;
             _configuration = configuration;
         }
 
-        public async Task<TokenResponseDTO> RegisterUserAsync(RegisterDTO registerDto)
+        public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDto)
         {
+            var userExists = await _userManager.FindByNameAsync(registerDto.Username);
+            if (userExists != null)
+            {
+                return new RegisterResponse { Success = false, Message = "User already exists" };
+            }
+
             var user = new IdentityUser
             {
-                UserName = registerDto.UserName,
-                Email = registerDto.Email
+                Email = registerDto.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = registerDto.Username
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
             if (!result.Succeeded)
             {
-                throw new Exception("User registration failed. Please try again.");
+                return new RegisterResponse { Success = false, Message = "User creation failed. Please check the details and try again." };
             }
 
-            var token = GenerateJwtToken(user);
-
-            return new TokenResponseDTO
-            {
-                Token = token,
-                Expiration = DateTime.Now.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]))
-            };
+            return new RegisterResponse { Success = true, Message = "User created successfully" };
         }
 
         public async Task<TokenResponseDTO> LoginUserAsync(LoginDTO loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
-            if (user == null)
-            {
-                throw new Exception("Invalid login attempt.");
-            }
+            var user = await _userManager.FindByNameAsync(loginDto.Username);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+                throw new UnauthorizedAccessException("Invalid credentials");
 
-            var signInResult = await _signInManager.PasswordSignInAsync(user, loginDto.Password, false, false);
-            if (signInResult.Succeeded)
-            {
-                var token = GenerateJwtToken(user);
-                return new TokenResponseDTO
-                {
-                    Token = token,
-                    Expiration = DateTime.Now.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"]))
-                };
-            }
+            var userRoles = await _userManager.GetRolesAsync(user);
 
-            throw new Exception("Invalid login attempt.");
-        }
-
-        private string GenerateJwtToken(IdentityUser user)
-        {
-            var claims = new List<Claim>
+            var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            foreach (var role in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]));
 
             var token = new JwtSecurityToken(
-                _configuration["JwtSettings:Issuer"],
-                _configuration["JwtSettings:Audience"],
-                claims,
-                expires: DateTime.Now.AddMinutes(int.Parse(_configuration["JwtSettings:ExpiryMinutes"])),
-                signingCredentials: creds);
+                issuer: _configuration["JwtSettings:Issuer"],
+                audience: _configuration["JwtSettings:Audience"],
+                expires: DateTime.Now.AddHours(3),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            return new TokenResponseDTO
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = token.ValidTo
+            };
         }
 
-        public bool IsTokenValid(string token)
+        public ClaimsPrincipal? IsTokenValid(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]);
-
             try
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]);
+
+                var validationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidIssuer = _configuration["JwtSettings:Issuer"],
+
                     ValidateAudience = true,
                     ValidAudience = _configuration["JwtSettings:Audience"],
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
 
-                return true;
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero, 
+
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                    RoleClaimType = ClaimTypes.Role
+                };
+
+                SecurityToken validatedToken;
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+                return principal;
             }
-            catch
+            catch (SecurityTokenExpiredException)
             {
-                return false;
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

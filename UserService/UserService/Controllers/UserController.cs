@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using UserService.DTOs;
 using UserService.Interfaces;
 
@@ -18,45 +19,44 @@ namespace UserService.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Invalid data.");
-            try
-            {
-                var tokenResponse = await _userService.RegisterUserAsync(registerDto);
-                return Ok(tokenResponse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+                return BadRequest(ModelState);
+
+            var registerResponse = await _userService.RegisterUserAsync(registerDto);
+
+            if (!registerResponse.Success)
+                return BadRequest(new { status = "error", registerResponse.Message });
+
+            return Ok(new { status = "success", registerResponse.Message });
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Invalid data.");
+                return BadRequest(ModelState);
+
             try
             {
                 var tokenResponse = await _userService.LoginUserAsync(loginDto);
                 return Ok(tokenResponse);
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException)
             {
-                return BadRequest(ex.Message);
+                return Unauthorized("Invalid credentials");
             }
         }
 
         [HttpPost("validate-token")]
-        public IActionResult ValidateToken([FromBody] string token)
+        public IActionResult ValidateToken([FromQuery] string token)
         {
-            if (string.IsNullOrEmpty(token))
-                return BadRequest("Token is required.");
-
-            bool isValid = _userService.IsTokenValid(token);
-
-            if (isValid)
-                return Ok(new { message = "Token is valid." });
-            else
+            var principal = _userService.IsTokenValid(token);
+            if (principal == null)
                 return Unauthorized(new { message = "Invalid or expired token." });
+
+            return Ok(new
+            {
+                username = principal.Identity?.Name,
+                roles = principal.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList()
+            });
         }
     }
 }

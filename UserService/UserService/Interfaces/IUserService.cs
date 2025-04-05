@@ -1,11 +1,12 @@
-﻿using UserService.DTOs;
+﻿using System.Security.Claims;
+using UserService.DTOs;
 
 namespace UserService.Interfaces
 {
     public interface IUserService
     {
-        Task<TokenResponseDTO> RegisterUserAsync(RegisterDTO registerDto);
+        Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDto);
         Task<TokenResponseDTO> LoginUserAsync(LoginDTO loginDto);
-        bool IsTokenValid(string token);
+        ClaimsPrincipal? IsTokenValid(string token);
     }
 }
