@@ -10,4 +10,5 @@ type ProductRepository interface {
 	FindCheapestProductByStore(ctx context.Context, name, store string) (models.Product, error)
 	FindAllProductPrices(ctx context.Context, name string) ([]models.Product, error)
 	FindProductById(ctx context.Context, id string) (models.Product, error)
+	AddProduct(ctx context.Context, product models.Product) (models.Product, error)
 }

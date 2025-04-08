@@ -6,10 +6,38 @@ import (
 	"os"
 	"sync"
 	"time"
-	// "github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+type Config struct {
+	DB    MongoConfig
+	Rabbitmq  RabbitMQConfig
+}
+
+type RabbitMQConfig struct {
+	Rabbitmq_queue string
+	Rabbitmq_host string
+}
+
+type MongoConfig struct {
+	URL      string
+}
+
+func LoadConfig() (*Config, error) {
+	cfg := &Config{
+		Rabbitmq: RabbitMQConfig{
+			Rabbitmq_queue: os.Getenv("RABBITMQ_QUEUE"),
+			Rabbitmq_host: os.Getenv("RABBITMQ_HOST"),
+		},
+		DB: MongoConfig{
+			URL: os.Getenv("MONGO_URI"),
+		},
+	}
+
+	return cfg, nil
+}
 
 var (
 	db     *mongo.Database

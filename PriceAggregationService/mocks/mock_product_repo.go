@@ -40,6 +40,21 @@ func (m *MockProductRepository) EXPECT() *MockProductRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddProduct mocks base method.
+func (m *MockProductRepository) AddProduct(ctx context.Context, product models.Product) (models.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddProduct", ctx, product)
+	ret0, _ := ret[0].(models.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddProduct indicates an expected call of AddProduct.
+func (mr *MockProductRepositoryMockRecorder) AddProduct(ctx, product any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddProduct", reflect.TypeOf((*MockProductRepository)(nil).AddProduct), ctx, product)
+}
+
 // FindAllProductPrices mocks base method.
 func (m *MockProductRepository) FindAllProductPrices(ctx context.Context, name string) ([]models.Product, error) {
 	m.ctrl.T.Helper()
