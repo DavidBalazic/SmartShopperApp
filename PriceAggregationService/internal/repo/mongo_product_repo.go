@@ -110,3 +110,14 @@ func (r *MongoProductRepository) FindProductById(ctx context.Context, id string)
 
 	return product, nil
 }
+
+func (r *MongoProductRepository) AddProduct(ctx context.Context, product models.Product) (models.Product, error) {
+	result, err := r.Db.InsertOne(ctx, product)
+	if err != nil {
+		log.Printf("AddProduct error: %v", err)
+		return models.Product{}, err
+	}
+	product.ID = result.InsertedID.(primitive.ObjectID).Hex()
+
+	return product, nil
+}

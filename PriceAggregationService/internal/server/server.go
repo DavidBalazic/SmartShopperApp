@@ -5,21 +5,33 @@ import (
 	"log"
 	"net"
 
-	"google.golang.org/grpc"
+	"github.com/DavidBalazic/SmartShopperApp/config"
 	"github.com/DavidBalazic/SmartShopperApp/internal/controllers"
 	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
-	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/rabbitmq"
 	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
+	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"google.golang.org/grpc"
 )
 
 func StartGRPCServer() {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 	productRepo := repo.NewMongoProductRepository()
 	productService := services.NewProductService(productRepo)
-	controller := controllers.NewProductController(productService)
+	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_queue)
+	if err != nil {
+		log.Fatalf("Failed to initialize RabbitMQ publisher: %v", err)
+	}
+	defer rabbitPublisher.Close()
+	controller := controllers.NewProductController(productService, rabbitPublisher)
 
 	grpcServer := grpc.NewServer()
 

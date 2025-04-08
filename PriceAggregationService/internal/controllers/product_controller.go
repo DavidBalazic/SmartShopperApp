@@ -6,17 +6,23 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/rabbitmq"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+
 type ProductController struct {
 	proto.UnimplementedProductServiceServer
-	service services.ProductService
+	service  services.ProductService
+	publisher *rabbitmq.Publisher
 }
 
-func NewProductController(service services.ProductService) *ProductController {
-	return &ProductController{service: service}
+func NewProductController(service services.ProductService, publisher *rabbitmq.Publisher) *ProductController {
+	return &ProductController{
+		service:  service,
+		publisher: publisher,
+	}
 }
 
 func (s *ProductController) GetCheapestProduct(ctx context.Context, req *proto.ProductRequest) (*proto.ProductResponse, error) {
@@ -69,6 +75,44 @@ func (s *ProductController) GetProductById(ctx context.Context, req *proto.Produ
 	}
 
 	product, err := s.service.GetProductById(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+
+	return toProductResponse(product), nil
+}
+
+func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProductRequest) (*proto.ProductResponse, error) {
+	if req.GetName() == "" || req.GetPrice() == 0 || req.GetQuantity() == 0 || req.GetUnit() == "" || req.GetStore() == ""  || req.GetPricePerUnit() == 0 { 
+		return nil, status.Error(codes.InvalidArgument, "product name, price, quantity, unit, store and price per unit are required")
+	}
+
+	product := models.Product{
+		Name:         req.GetName(),
+		Description:  req.GetDescription(),
+		Price:        req.GetPrice(),
+		Quantity:     req.GetQuantity(),
+		Unit:         req.GetUnit(),
+		Store:        req.GetStore(),
+		PricePerUnit: req.GetPricePerUnit(),
+	}
+
+	createdProduct, err := s.service.AddProduct(ctx, product)
+	if err != nil {
+		return nil, err
+	}
+
+	productMessage := map[string]interface{}{
+		"id":            createdProduct.ID,
+		"name":          createdProduct.Name,
+		"description":   createdProduct.Description,
+		"price":         createdProduct.Price,
+		"quantity":      createdProduct.Quantity,
+		"unit":          createdProduct.Unit,
+		"store":         createdProduct.Store,
+		"pricePerUnit":  createdProduct.PricePerUnit,
+	}
+	err = s.publisher.Publish(productMessage)
 	if err != nil {
 		return nil, err
 	}
