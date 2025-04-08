@@ -14,12 +14,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func StartGRPCServer() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-
+func StartGRPCServer(cfg *config.Config) {
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
