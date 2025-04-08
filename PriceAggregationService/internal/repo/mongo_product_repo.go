@@ -10,7 +10,7 @@ import (
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/bson/primitive"
     "github.com/DavidBalazic/SmartShopperApp/internal/models"
-    "github.com/DavidBalazic/SmartShopperApp/config"
+    "github.com/DavidBalazic/SmartShopperApp/internal/database"
 )
 
 type MongoProductRepository struct {
@@ -18,8 +18,8 @@ type MongoProductRepository struct {
 }
 
 func NewMongoProductRepository() *MongoProductRepository {
-    db := config.GetDB().Collection("products")
-    return &MongoProductRepository{Db: db}
+    collection := db.GetDB().Collection("products")
+	return &MongoProductRepository{Db: collection}
 }
 
 func (r *MongoProductRepository) FindCheapestProduct(ctx context.Context, name string) (models.Product, error) {
