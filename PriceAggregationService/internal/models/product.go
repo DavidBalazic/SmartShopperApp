@@ -6,7 +6,7 @@ type Product struct {
 	Description  string  `bson:"description"`
 	Price        float64 `bson:"price"`
 	Quantity     float64 `bson:"quantity"`
-	Unit     	 string  `bson:"unit"`
+	Unit         string  `bson:"unit"`
 	Store        string  `bson:"store"`
-	PricePerUnit float64 `bson:"price_per_unit"`
+	PricePerUnit float64 `bson:"pricePerUnit"`
 }
