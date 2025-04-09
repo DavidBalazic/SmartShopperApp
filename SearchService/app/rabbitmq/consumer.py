@@ -1,15 +1,9 @@
 import pika
 import json
 import logging
-from sentence_transformers import SentenceTransformer
-from app.helpers.pinecone_helpers import initialize_pinecone, get_embedding
+from app.dependencies.search_service import model, index
+from app.helpers.pinecone_helpers import get_embedding
 from app.core.config import Config
-
-
-pc, index = initialize_pinecone(api_key=Config.PINECONE_API_KEY, index_name=Config.PINECONE_INDEX_NAME, dimension=384)
-
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-print("Model loaded successfully.")
 
 def callback(ch, method, properties, body):
     try:
@@ -49,7 +43,7 @@ def callback(ch, method, properties, body):
 
 def listen_for_updates():
     connection = pika.BlockingConnection(
-        pika.URLParameters(Config.RABBITMQ_HOST)
+        pika.ConnectionParameters(Config.RABBITMQ_HOST)
     )
     channel = connection.channel()
     channel.queue_declare(queue=Config.RABBITMQ_QUEUE, durable=True)
