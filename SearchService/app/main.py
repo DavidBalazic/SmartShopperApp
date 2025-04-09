@@ -24,7 +24,11 @@ app.add_middleware(
 app.include_router(product.router)
 
 def start_rabbitmq_consumer():
-    listen_for_updates()
+    try:
+        logging.info("Starting RabbitMQ consumer...")
+        listen_for_updates()
+    except Exception as e:
+        logging.error(f"RabbitMQ consumer crashed: {e}")
 
 if __name__ == "__main__":
     consumer_thread = threading.Thread(target=start_rabbitmq_consumer, daemon=True)
