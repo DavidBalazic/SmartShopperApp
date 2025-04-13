@@ -3,7 +3,7 @@ from app.rabbitmq.consumer import listen_for_updates
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import product
+from app.routes import product_search
 import threading
 
 logging.basicConfig(
@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-app.include_router(product.router)
+app.include_router(product_search.router)
 
 def start_rabbitmq_consumer():
     try:
