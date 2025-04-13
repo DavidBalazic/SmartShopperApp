@@ -28,8 +28,8 @@ mock_product_service_result = Product(
     pricePerUnit=2.5
 )
 
-@patch("app.routes.product.get_product_by_id")
-@patch("app.routes.product.query_from_pinecone")
+@patch("app.routes.product_search.get_product_by_id")
+@patch("app.routes.product_search.query_products")
 def test_get_cheapest_product(mock_query_from_pinecone, mock_get_product_by_id):
     mock_query_from_pinecone.return_value = mock_pinecone_results
     mock_get_product_by_id.return_value = mock_product_service_result
