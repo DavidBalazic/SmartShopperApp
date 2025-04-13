@@ -1,24 +1,22 @@
 import pika
 import json
 import logging
-from app.dependencies.search_service import model, index
+from app.services.pinecone_service import PineconeService
+from app.services.embedding_service import EmbeddingService
 from app.helpers.pinecone_helpers import get_embedding
 from app.core.config import Config
 
-def callback(ch, method, properties, body):
+def callback(ch, method, properties, body, model, index):
     try:
         decoded_body = body.decode('utf-8')
         print(f"message received: {decoded_body}")
         message = json.loads(decoded_body)
         product_id = message["id"]
         name = message.get("name", "")
-        description = message.get("description", "")
         store = message.get("store", "")
         pricePerUnit = message.get("pricePerUnit", "")
 
-
-        combined_text = f"{name} {description}"
-        embedding = get_embedding(combined_text, model)
+        embedding = get_embedding(name, model)
 
         index.upsert(
             vectors=[
@@ -42,6 +40,9 @@ def callback(ch, method, properties, body):
 
 
 def listen_for_updates():
+    model = EmbeddingService.get_model()
+    index = PineconeService.get_index()
+    
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(Config.RABBITMQ_HOST)
     )
@@ -50,7 +51,7 @@ def listen_for_updates():
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(
         queue=Config.RABBITMQ_QUEUE,
-        on_message_callback=callback,
+        on_message_callback=lambda ch, method, properties, body: callback(ch, method, properties, body, model, index),
         auto_ack=False
     )
     logging.info("Waiting for messages. Press CTRL+C to exit.")

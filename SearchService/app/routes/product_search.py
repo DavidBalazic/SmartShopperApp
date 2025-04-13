@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import Optional
-from app.helpers.pinecone_helpers import query_from_pinecone
 from app.models.product import Product
-from app.dependencies.search_service import model, index
+from app.services.product_search_service import query_products
 import logging
 from app.services.product_service import get_product_by_id
 
@@ -11,19 +10,12 @@ router = APIRouter()
 @router.get("/cheapest-product/", response_model=Optional[Product])
 def get_cheapest_product(q: str = Query(..., description="Search query text")):
     logging.info(f"Received query: {q}")
-    results = query_from_pinecone(
-        query=q,
-        index=index,
-        model=model,
-        namespace="products",
-        top_k=10,
-        include_metadata=True
-    )
+    matches = query_products(query=q)
     
     filtered = [
-        match for match in results if match.score >= 0.3
+        match for match in matches if match.score >= 0.3
     ]
-    logging.info(f"Filtered results: {filtered}")
+    logging.info(f"Filtered matches: {filtered}")
 
     if not filtered:
         return None
