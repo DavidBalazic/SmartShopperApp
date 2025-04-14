@@ -13,26 +13,13 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Add your frontend origin here
-    allow_credentials=True, 
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-)
-
-app.include_router(product_search.router)
-
-@app.on_event("startup")
-def startup_event():
+async def lifespan(app: FastAPI):
     logging.info("Loading SentenceTransformer model...")
-    model = EmbeddingService.get_model()
+    model = EmbeddingService.get_model() 
     logging.info("Model loaded.")
 
     logging.info("Initializing Pinecone index...")
-    index = PineconeService.get_index()
+    index = PineconeService.get_index() 
     logging.info("Pinecone index initialized.")
 
     def run_consumer():
@@ -42,6 +29,22 @@ def startup_event():
             logging.error(f"RabbitMQ consumer crashed: {e}")
     
     threading.Thread(target=run_consumer, daemon=True).start()
+
+    yield
+
+    logging.info("Shutting down the application.")
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins, modify for specific domains
+    allow_credentials=True, 
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
+
+app.include_router(product_search.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

@@ -15,6 +15,7 @@ def get_cheapest_product(
     logging.info(f"Received query: {q}, store: {store}")
     matches = query_products(query=q, store=store)
     
+    # TODO: handle empty
     cheapest = min(
         matches,
         key=lambda x: float(x.metadata.get("pricePerUnit", float("inf")))
