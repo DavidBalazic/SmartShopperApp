@@ -1,8 +1,6 @@
 import pika
 import json
 import logging
-from app.services.pinecone_service import PineconeService
-from app.services.embedding_service import EmbeddingService
 from app.helpers.pinecone_helpers import get_embedding
 from app.core.config import Config
 
@@ -39,10 +37,7 @@ def callback(ch, method, properties, body, model, index):
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
 
-def listen_for_updates():
-    model = EmbeddingService.get_model()
-    index = PineconeService.get_index()
-    
+def listen_for_updates(model, index):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(Config.RABBITMQ_HOST)
     )

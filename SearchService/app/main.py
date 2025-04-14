@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import product_search
 import threading
+from app.services.pinecone_service import PineconeService
+from app.services.embedding_service import EmbeddingService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,15 +25,23 @@ app.add_middleware(
 
 app.include_router(product_search.router)
 
-def start_rabbitmq_consumer():
-    try:
-        logging.info("Starting RabbitMQ consumer...")
-        listen_for_updates()
-    except Exception as e:
-        logging.error(f"RabbitMQ consumer crashed: {e}")
+@app.on_event("startup")
+def startup_event():
+    logging.info("Loading SentenceTransformer model...")
+    model = EmbeddingService.get_model()
+    logging.info("Model loaded.")
+
+    logging.info("Initializing Pinecone index...")
+    index = PineconeService.get_index()
+    logging.info("Pinecone index initialized.")
+
+    def run_consumer():
+        try:
+            listen_for_updates(model, index)
+        except Exception as e:
+            logging.error(f"RabbitMQ consumer crashed: {e}")
+    
+    threading.Thread(target=run_consumer, daemon=True).start()
 
 if __name__ == "__main__":
-    consumer_thread = threading.Thread(target=start_rabbitmq_consumer, daemon=True)
-    consumer_thread.start()
-
     uvicorn.run(app, host="localhost", port=8000)
