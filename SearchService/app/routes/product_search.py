@@ -15,16 +15,8 @@ def get_cheapest_product(
     logging.info(f"Received query: {q}, store: {store}")
     matches = query_products(query=q, store=store)
     
-    filtered = [
-        match for match in matches if match.score >= 0.3
-    ]
-    logging.info(f"Filtered matches: {filtered}")
-
-    if not filtered:
-        return None
-
     cheapest = min(
-        filtered,
+        matches,
         key=lambda x: float(x.metadata.get("pricePerUnit", float("inf")))
     )
     logging.info(f"Cheapest product found: {cheapest}")

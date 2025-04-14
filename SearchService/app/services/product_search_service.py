@@ -7,18 +7,16 @@ def query_products(q: str, store: Optional[str] = None, namespace: str = "produc
     model = EmbeddingService.get_model()
     index = PineconeService.get_index()
     
-    response = query_from_pinecone(
+    results = query_from_pinecone(
         query=q,
         index=index,
         model=model,
         namespace=namespace,
         top_k=top_k,
         include_metadata=True
-    )
+    ).get("matches", [])
     
-    matches = response.get("matches", [])
-
-    if store:
-        matches = [m for m in matches if m.metadata.get("store", "").lower() == store.lower()]
-    
-    return matches
+    return [
+        match for match in results
+        if match.score >= 0.3 and (store is None or match.metadata.get("store").lower() == store.lower())
+    ]
