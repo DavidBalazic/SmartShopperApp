@@ -8,9 +8,12 @@ from app.services.product_service import get_product_by_id
 router = APIRouter()
 
 @router.get("/cheapest-product/", response_model=Optional[Product])
-def get_cheapest_product(q: str = Query(..., description="Search query text")):
-    logging.info(f"Received query: {q}")
-    matches = query_products(query=q)
+def get_cheapest_product(
+    q: str = Query(..., description="Search query text"),
+    store: Optional[str] = Query(None, description="Filter results by store name")
+    ):
+    logging.info(f"Received query: {q}, store: {store}")
+    matches = query_products(query=q, store=store)
     
     filtered = [
         match for match in matches if match.score >= 0.3
