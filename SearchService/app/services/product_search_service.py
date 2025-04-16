@@ -4,10 +4,15 @@ from app.helpers.pinecone_helpers import query_from_pinecone
 from typing import Optional
 import logging
 
-def query_products(query: str, store: Optional[str] = None, namespace: str = "products", top_k: int = 10):
-    model = EmbeddingService.get_model()
-    index = PineconeService.get_index()
-    
+def query_products(
+    query: str,
+    model,
+    index,
+    store: Optional[str] = None,
+    namespace: str = "products",
+    top_k: int = 10
+
+):
     results = query_from_pinecone(
         query=query,
         index=index,

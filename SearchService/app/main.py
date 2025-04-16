@@ -7,24 +7,27 @@ from app.routes import product_search
 import threading
 from app.services.pinecone_service import PineconeService
 from app.services.embedding_service import EmbeddingService
+from contextlib import asynccontextmanager
+from app.dependencies.container import container
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.info("Loading SentenceTransformer model...")
-    model = EmbeddingService.get_model() 
+    container.model = EmbeddingService.load_model()
     logging.info("Model loaded.")
 
     logging.info("Initializing Pinecone index...")
-    index = PineconeService.get_index() 
+    container.index = PineconeService.initialize_index()
     logging.info("Pinecone index initialized.")
 
     def run_consumer():
         try:
-            listen_for_updates(model, index)
+            listen_for_updates(container.model, container.index)
         except Exception as e:
             logging.error(f"RabbitMQ consumer crashed: {e}")
     

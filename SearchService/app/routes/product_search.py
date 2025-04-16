@@ -1,19 +1,22 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from app.models.product import Product
 from app.services.product_search_service import query_products
 import logging
 from app.services.product_service import get_product_by_id
+from app.dependencies.deps import get_model, get_index
 
 router = APIRouter()
 
 @router.get("/cheapest-product/", response_model=Optional[Product])
 def get_cheapest_product(
     q: str = Query(..., description="Search query text"),
-    store: Optional[str] = Query(None, description="Filter results by store name")
+    store: Optional[str] = Query(None, description="Filter results by store name"),
+    model=Depends(get_model),
+    index=Depends(get_index)
     ):
     logging.info(f"Received query: {q}, store: {store}")
-    matches = query_products(query=q, store=store)
+    matches = query_products(query=q, store=store, model=model, index=index)
     
     # TODO: handle empty
     cheapest = min(
@@ -38,10 +41,12 @@ def get_cheapest_product(
 @router.get("/search-products/", response_model=list[Product])
 def get_all_matching_products(
     q: str = Query(..., description="Search query text"),
-    store: Optional[str] = Query(None, description="Optional store filter")
+    store: Optional[str] = Query(None, description="Optional store filter"),
+    model=Depends(get_model),
+    index=Depends(get_index)
 ):
     logging.info(f"Received query: {q}, store: {store}")
-    matches = query_products(query=q, store=store)
+    matches = query_products(query=q, store=store, model=model, index=index)
 
     products = []
     for match in matches:
