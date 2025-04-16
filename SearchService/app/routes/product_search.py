@@ -1,27 +1,26 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from app.models.product import Product
 from app.services.product_search_service import query_products
 import logging
 from app.services.product_service import get_product_by_id
+from app.dependencies.deps import get_model, get_index
 
 router = APIRouter()
 
 @router.get("/cheapest-product/", response_model=Optional[Product])
-def get_cheapest_product(q: str = Query(..., description="Search query text")):
-    logging.info(f"Received query: {q}")
-    matches = query_products(query=q)
+def get_cheapest_product(
+    q: str = Query(..., description="Search query text"),
+    store: Optional[str] = Query(None, description="Filter results by store name"),
+    model=Depends(get_model),
+    index=Depends(get_index)
+    ):
+    logging.info(f"Received query: {q}, store: {store}")
+    matches = query_products(query=q, store=store, model=model, index=index)
     
-    filtered = [
-        match for match in matches if match.score >= 0.3
-    ]
-    logging.info(f"Filtered matches: {filtered}")
-
-    if not filtered:
-        return None
-
+    # TODO: handle empty
     cheapest = min(
-        filtered,
+        matches,
         key=lambda x: float(x.metadata.get("pricePerUnit", float("inf")))
     )
     logging.info(f"Cheapest product found: {cheapest}")
@@ -38,3 +37,33 @@ def get_cheapest_product(q: str = Query(..., description="Search query text")):
         store=product_details.store,
         pricePerUnit=product_details.pricePerUnit
     )
+    
+@router.get("/search-products/", response_model=list[Product])
+def get_all_matching_products(
+    q: str = Query(..., description="Search query text"),
+    store: Optional[str] = Query(None, description="Optional store filter"),
+    model=Depends(get_model),
+    index=Depends(get_index)
+):
+    logging.info(f"Received query: {q}, store: {store}")
+    matches = query_products(query=q, store=store, model=model, index=index)
+
+    products = []
+    for match in matches:
+        try:
+            product_details = get_product_by_id(match.id)
+            logging.info(f"Product details fetched from search-products method: {product_details}")
+            product = Product(
+                name=product_details.name,
+                description=product_details.description,
+                price=product_details.price,
+                quantity=product_details.quantity,
+                unit=product_details.unit,
+                store=product_details.store,
+                pricePerUnit=product_details.pricePerUnit
+            )
+            products.append(product)
+        except Exception as e:
+            logging.warning(f"Could not fetch product with ID {match.id}: {e}")
+    
+    return products
