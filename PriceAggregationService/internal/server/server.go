@@ -21,7 +21,7 @@ func StartGRPCServer(cfg *config.Config) {
 	}
 	productRepo := repo.NewMongoProductRepository()
 	productService := services.NewProductService(productRepo)
-	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_queue)
+	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_port, cfg.Rabbitmq.Rabbitmq_user, cfg.Rabbitmq.Rabbitmq_pass, cfg.Rabbitmq.Rabbitmq_queue)
 	if err != nil {
 		log.Fatalf("Failed to initialize RabbitMQ publisher: %v", err)
 	}
