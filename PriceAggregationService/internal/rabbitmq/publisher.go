@@ -13,9 +13,9 @@ type Publisher struct {
 }
 
 // NewPublisher creates a new Publisher instance, connects to RabbitMQ, and declares a queue
-func NewPublisher(amqpURI, queueName string) (*Publisher, error) {
+func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, RabbitmqQueue string) (*Publisher, error) {
 	// Establish connection to RabbitMQ
-	conn, err := amqp.Dial(amqpURI)
+	conn, err := amqp.Dial("amqp://" + rabbitmqUser + ":" + rabbitmqPass + "@" + rabbitmqHost + ":" + rabbitmqPort + "/")
 	if err != nil {
 		log.Printf("Failed to connect to RabbitMQ: %v", err)
 		return nil, err
@@ -30,7 +30,7 @@ func NewPublisher(amqpURI, queueName string) (*Publisher, error) {
 
 	// Declare a queue
 	queue, err := ch.QueueDeclare(
-		queueName, // Queue name
+		RabbitmqQueue, // Queue name
 		true,      // Durable: survives server restart
 		false,     // Auto-delete: deletes when no consumers are connected
 		false,     // Exclusive: used by only this connection

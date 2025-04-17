@@ -38,9 +38,15 @@ def callback(ch, method, properties, body, model, index):
 
 
 def listen_for_updates(model, index):
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(Config.RABBITMQ_HOST)
+    credentials = pika.PlainCredentials(Config.RABBITMQ_USER, Config.RABBITMQ_PASSWORD)
+    parameters = pika.ConnectionParameters(
+        host=Config.RABBITMQ_HOST,
+        port=Config.RABBITMQ_PORT,
+        virtual_host='/',
+        credentials=credentials
     )
+
+    connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
     channel.queue_declare(queue=Config.RABBITMQ_QUEUE, durable=True)
     channel.basic_qos(prefetch_count=1)
