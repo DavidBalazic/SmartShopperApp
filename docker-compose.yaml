@@ -39,7 +39,7 @@ services:
       - "15672:15672" 
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 15s
       retries: 3
     environment:
@@ -92,13 +92,14 @@ services:
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 http2 ssl
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
       KONG_ADMIN_GUI_URL: http://localhost:8002
     ports:
       - "8000:8000"
       - "8001:8001" 
       - "8002:8002"
+      - "8443:8443"
     healthcheck:
       test: [ "CMD", "kong", "health" ]
       interval: 10s
@@ -106,6 +107,26 @@ services:
       retries: 10
     restart: on-failure
 
+  tyk-redis:
+    image: redis:4.0-alpine
+    container_name: tyk-redis
+    ports:
+      - "6379:6379"
+
+  tyk-gateway:
+    image: tykio/tyk-gateway:latest
+    container_name: tyk-gateway
+    ports:
+      - "9000:8080" 
+    depends_on:
+      - tyk-redis
+      - userservice
+      - productservice
+      - searchservice
+    volumes:
+      - ./tyk/tyk.conf:/opt/tyk-gateway/tyk.conf
+      - ./tyk/apps:/opt/tyk-gateway/apps
+    restart: on-failure
 
 volumes:
   rabbitmq_data:
