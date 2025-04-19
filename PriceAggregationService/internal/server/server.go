@@ -12,6 +12,7 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func StartGRPCServer(cfg *config.Config) {
@@ -29,6 +30,8 @@ func StartGRPCServer(cfg *config.Config) {
 	controller := controllers.NewProductController(productService, rabbitPublisher)
 
 	grpcServer := grpc.NewServer()
+
+	reflection.Register(grpcServer)
 
 	proto.RegisterProductServiceServer(grpcServer, controller)
 
