@@ -10,7 +10,7 @@ services:
 
   productservice:
     build:
-      context: ./PriceAggregationService
+      context: ./ProductService
       dockerfile: Dockerfile
     ports:
       - "50051:50051"

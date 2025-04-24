@@ -1,16 +1,16 @@
-name: Price Aggregation Service CI
+name: Product Service CI
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'PriceAggregationService/**'
+      - 'ProductService/**'
   pull_request:
     branches:
       - main
     paths:
-      - 'PriceAggregationService/**'
+      - 'ProductService/**'
 
 jobs:
   test:
@@ -27,10 +27,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd PriceAggregationService
+        cd ProductService
         go mod tidy 
 
     - name: Run Tests
       run: |
-        cd PriceAggregationService
+        cd ProductService
         go test ./tests/... -v
