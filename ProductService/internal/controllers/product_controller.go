@@ -6,7 +6,6 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
-	"github.com/DavidBalazic/SmartShopperApp/internal/rabbitmq"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -15,58 +14,12 @@ import (
 type ProductController struct {
 	proto.UnimplementedProductServiceServer
 	service  services.ProductService
-	publisher *rabbitmq.Publisher
 }
 
-func NewProductController(service services.ProductService, publisher *rabbitmq.Publisher) *ProductController {
+func NewProductController(service services.ProductService) *ProductController {
 	return &ProductController{
 		service:  service,
-		publisher: publisher,
 	}
-}
-
-func (s *ProductController) GetCheapestProduct(ctx context.Context, req *proto.ProductRequest) (*proto.ProductResponse, error) {
-	if req.GetName() == "" {
-		return nil, status.Error(codes.InvalidArgument, "product name is required")
-	}
-
-	product, err := s.service.GetCheapestProduct(ctx, req.GetName()) // Added context propagation
-	if err != nil {
-		return nil, err
-	}
-
-	return toProductResponse(product), nil
-}
-
-func (s *ProductController) GetCheapestByStore(ctx context.Context, req *proto.StoreRequest) (*proto.ProductResponse, error) {
-	if req.GetName() == "" {
-		return nil, status.Error(codes.InvalidArgument, "product name is required")
-	}
-	if req.GetStore() == "" {
-		return nil, status.Error(codes.InvalidArgument, "store name is required")
-	}
-
-	product, err := s.service.GetCheapestByStore(ctx, req.GetName(), req.GetStore())
-	if err != nil {
-		return nil, err
-	}
-
-	return toProductResponse(product), nil
-}
-
-func (s *ProductController) GetAllPrices(ctx context.Context, req *proto.ProductRequest) (*proto.ProductList, error) {
-	if req.GetName() == "" {
-		return nil, status.Error(codes.InvalidArgument, "product name is required")
-	}
-
-	products, err := s.service.GetAllPrices(ctx, req.GetName())
-	if err != nil {
-		return nil, err
-	}
-
-	return &proto.ProductList{
-		Products: toProtoProducts(products),
-	}, nil
 }
 
 func (s *ProductController) GetProductById(ctx context.Context, req *proto.ProductIdRequest) (*proto.ProductResponse, error) {
@@ -102,22 +55,51 @@ func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProduc
 		return nil, err
 	}
 
-	productMessage := map[string]interface{}{
-		"id":            createdProduct.ID,
-		"name":          createdProduct.Name,
-		"description":   createdProduct.Description,
-		"price":         createdProduct.Price,
-		"quantity":      createdProduct.Quantity,
-		"unit":          createdProduct.Unit,
-		"store":         createdProduct.Store,
-		"pricePerUnit":  createdProduct.PricePerUnit,
+	return toProductResponse(createdProduct), nil
+}
+
+func (s *ProductController) GetProductsByIds(ctx context.Context, req *proto.ProductsIdsRequest) (*proto.ProductList, error) {
+	if len(req.GetIds()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "list of IDs is required")
 	}
-	err = s.publisher.Publish(productMessage)
+	products, err := s.service.GetProductsByIds(ctx, req.GetIds())
+	if err != nil {
+		return nil, err
+	}
+	return &proto.ProductList{Products: toProtoProducts(products)}, nil
+}
+
+func (s *ProductController) AddProducts(ctx context.Context, req *proto.AddProductsRequest) (*proto.ProductList, error) {
+	if len(req.GetProducts()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "at least one product is required")
+	}
+
+	var productModels []models.Product
+
+	for _, p := range req.GetProducts() {
+		if p.GetName() == "" || p.GetPrice() == 0 || p.GetQuantity() == 0 || p.GetUnit() == "" || p.GetStore() == "" || p.GetPricePerUnit() == 0 {
+			return nil, status.Error(codes.InvalidArgument, "all product fields are required")
+		}
+
+		product := models.Product{
+			Name:         p.GetName(),
+			Description:  p.GetDescription(),
+			Price:        p.GetPrice(),
+			Quantity:     p.GetQuantity(),
+			Unit:         p.GetUnit(),
+			Store:        p.GetStore(),
+			PricePerUnit: p.GetPricePerUnit(),
+		}
+
+		productModels = append(productModels, product)
+	}
+
+	createdProducts, err := s.service.AddProducts(ctx, productModels)
 	if err != nil {
 		return nil, err
 	}
 
-	return toProductResponse(product), nil
+	return &proto.ProductList{Products: toProtoProducts(createdProducts)}, nil
 }
 
 // Helper functions for conversion

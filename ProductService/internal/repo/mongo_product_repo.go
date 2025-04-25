@@ -2,8 +2,6 @@ package repo
 
 import (
     "context"
-    "strings"
-    "regexp"
     "log"
 
     "go.mongodb.org/mongo-driver/bson"
@@ -13,6 +11,13 @@ import (
     "github.com/DavidBalazic/SmartShopperApp/internal/database"
 )
 
+type ProductRepository interface {
+	FindProductById(ctx context.Context, id string) (models.Product, error)
+	AddProduct(ctx context.Context, product models.Product) (models.Product, error)
+	FindProductsByIds(ctx context.Context, ids []string) ([]models.Product, error)
+	AddProducts(ctx context.Context, products []models.Product) ([]models.Product, error)
+}
+
 type MongoProductRepository struct {
     Db *mongo.Collection
 }
@@ -20,72 +25,6 @@ type MongoProductRepository struct {
 func NewMongoProductRepository() *MongoProductRepository {
     collection := db.GetDB().Collection("products")
 	return &MongoProductRepository{Db: collection}
-}
-
-func (r *MongoProductRepository) FindCheapestProduct(ctx context.Context, name string) (models.Product, error) {
-    log.Printf("FindCheapestProduct called with name: %s", name)
-    name = strings.ToLower(name)
-    words := strings.Fields(name)
-
-    var orConditions []bson.M
-    for _, word := range words {
-        orConditions = append(orConditions, bson.M{"name": bson.M{"$regex": regexp.QuoteMeta(word), "$options": "i"}})
-    }
-
-    var product models.Product
-    err := r.Db.FindOne(ctx, bson.M{"$or": orConditions}).Decode(&product)
-    if err != nil {
-        log.Printf("FindCheapestProduct Error finding cheapest product: %v", err)
-        return models.Product{}, err
-    }
-    
-    return product, err
-}
-
-func (r *MongoProductRepository) FindCheapestProductByStore(ctx context.Context, name, store string) (models.Product, error) {
-    log.Printf("FindCheapestProductByStore called with name: %s, store: %s", name, store)
-    name = strings.ToLower(name)
-    store = strings.ToLower(store)
-    words := strings.Fields(name)
-
-    var orConditions []bson.M
-    for _, word := range words {
-        orConditions = append(orConditions, bson.M{"name": bson.M{"$regex": regexp.QuoteMeta(word), "$options": "i"}})
-    }
-
-    var product models.Product
-    err := r.Db.FindOne(ctx, bson.M{"$or": orConditions, "store": bson.M{"$regex": regexp.QuoteMeta(store), "$options": "i"}}).Decode(&product)
-    if err != nil {
-        log.Printf("FindCheapestProductByStore Error finding cheapest product in store: %v", err)
-        return models.Product{}, err
-    }
-    return product, err
-}
-
-func (r *MongoProductRepository) FindAllProductPrices(ctx context.Context, name string) ([]models.Product, error) {
-    log.Printf("FindAllProductPrices called with name: %s", name)
-    name = strings.ToLower(name)
-    words := strings.Fields(name)
-
-    var orConditions []bson.M
-    for _, word := range words {
-        orConditions = append(orConditions, bson.M{"name": bson.M{"$regex": regexp.QuoteMeta(word), "$options": "i"}})
-    }
-
-    var products []models.Product
-    cursor, err := r.Db.Find(ctx, bson.M{"$or": orConditions})
-    if err != nil {
-        log.Printf("FindAllProductPrices Error finding all product prices: %v", err)
-        return nil, err
-    }
-    defer cursor.Close(ctx)
-
-    for cursor.Next(ctx) {
-        var product models.Product
-        cursor.Decode(&product)
-        products = append(products, product)
-    }
-    return products, nil
 }
 
 func (r *MongoProductRepository) FindProductById(ctx context.Context, id string) (models.Product, error) {
@@ -120,4 +59,47 @@ func (r *MongoProductRepository) AddProduct(ctx context.Context, product models.
 	product.ID = result.InsertedID.(primitive.ObjectID).Hex()
 
 	return product, nil
+}
+
+func (r *MongoProductRepository) FindProductsByIds(ctx context.Context, ids []string) ([]models.Product, error) {
+	log.Printf("FindProductsByIDs called with ID: %s", ids)
+
+    var objectIDs []primitive.ObjectID
+    for _, id := range ids {
+        objID, err := primitive.ObjectIDFromHex(id)
+        if err != nil {
+            log.Printf("Invalid ObjectId format: %v", err)
+            return nil, err
+        }
+        objectIDs = append(objectIDs, objID)
+    }
+
+    cursor, err := r.Db.Find(ctx, bson.M{"_id": bson.M{"$in": objectIDs}})
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+	var products []models.Product
+	if err := cursor.All(ctx, &products); err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
+func (r *MongoProductRepository) AddProducts(ctx context.Context, products []models.Product) ([]models.Product, error) {
+    log.Printf("Adding products: %v", products)
+
+	docs := make([]interface{}, len(products))
+	for i, p := range products {
+		docs[i] = p
+	}
+	res, err := r.Db.InsertMany(ctx, docs)
+	if err != nil {
+		return nil, err
+	}
+	for i, id := range res.InsertedIDs {
+		products[i].ID = id.(primitive.ObjectID).Hex()
+	}
+	return products, nil
 }
