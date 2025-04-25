@@ -20,14 +20,14 @@ func StartGRPCServer(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-	productRepo := repo.NewMongoProductRepository()
-	productService := services.NewProductService(productRepo)
 	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_port, cfg.Rabbitmq.Rabbitmq_user, cfg.Rabbitmq.Rabbitmq_pass, cfg.Rabbitmq.Rabbitmq_queue)
 	if err != nil {
 		log.Fatalf("Failed to initialize RabbitMQ publisher: %v", err)
 	}
 	defer rabbitPublisher.Close()
-	controller := controllers.NewProductController(productService, rabbitPublisher)
+	productRepo := repo.NewMongoProductRepository()
+	productService := services.NewProductService(productRepo, rabbitPublisher)
+	controller := controllers.NewProductController(productService)
 
 	grpcServer := grpc.NewServer()
 

@@ -6,14 +6,19 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type Publisher struct {
+type Publisher interface {
+	PublishSingleProduct(message map[string]interface{}) error
+	PublishMultipleProducts(messages []map[string]interface{}) error
+}
+
+type RabbitMQPublisher struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
 	queue   amqp.Queue
 }
 
 // NewPublisher creates a new Publisher instance, connects to RabbitMQ, and declares a queue
-func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, RabbitmqQueue string) (*Publisher, error) {
+func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, RabbitmqQueue string) (*RabbitMQPublisher, error) {
 	// Establish connection to RabbitMQ
 	conn, err := amqp.Dial("amqp://" + rabbitmqUser + ":" + rabbitmqPass + "@" + rabbitmqHost + ":" + rabbitmqPort + "/")
 	if err != nil {
@@ -42,7 +47,7 @@ func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, Rabbit
 		return nil, err
 	}
 
-	return &Publisher{
+	return &RabbitMQPublisher{
 		conn:    conn,
 		channel: ch,
 		queue:   queue,
@@ -50,7 +55,7 @@ func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, Rabbit
 }
 
 // Publish sends a message to the RabbitMQ queue
-func (p *Publisher) Publish(message map[string]interface{}) error {
+func (p *RabbitMQPublisher) PublishSingleProduct(message map[string]interface{}) error {
 	// Convert the message to a byte slice (example: JSON encoding)
 	// Here we're assuming the message is a map and you need to serialize it as JSON
 	body, err := json.Marshal(message)
@@ -78,7 +83,37 @@ func (p *Publisher) Publish(message map[string]interface{}) error {
 	log.Printf("Message published: %v", message)
 	return nil
 }
-func (p *Publisher) Close() {
+
+func (p *RabbitMQPublisher) PublishMultipleProducts(message []map[string]interface{}) error {
+	// Convert the message to a byte slice (example: JSON encoding)
+	// Here we're assuming the message is a map and you need to serialize it as JSON
+	body, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("Failed to marshal message: %v", err)
+		return err
+	}
+
+	// Publish the message to the queue
+	err = p.channel.Publish(
+		"",        // Default exchange
+		p.queue.Name, // Queue name
+		false,    // Mandatory: delivery fails if no queues are bound
+		false,    // Immediate: ensure immediate delivery
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		},
+	)
+	if err != nil {
+		log.Printf("Failed to publish message: %v", err)
+		return err
+	}
+
+	log.Printf("Message published: %v", message)
+	return nil
+}
+
+func (p *RabbitMQPublisher) Close() {
 	p.channel.Close()
 	p.conn.Close()
 }
