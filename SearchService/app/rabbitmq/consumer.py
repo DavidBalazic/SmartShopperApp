@@ -8,33 +8,39 @@ def callback(ch, method, properties, body, model, index):
     try:
         decoded_body = body.decode('utf-8')
         print(f"message received: {decoded_body}")
-        message = json.loads(decoded_body)
-        product_id = message["id"]
-        name = message.get("name", "")
-        store = message.get("store", "")
-        pricePerUnit = message.get("pricePerUnit", "")
+        messages = json.loads(decoded_body)
+        
+        if isinstance(messages, dict):
+            messages = [messages]
+        
+        for message in messages:
+            product_id = message.get("id", "")
+            name = message.get("name", "")
+            store = message.get("store", "")
+            pricePerUnit = message.get("pricePerUnit", "")
 
-        embedding = get_embedding(name, model)
+            embedding = get_embedding(name, model)
 
-        index.upsert(
-            vectors=[
-                {
-                    "id": product_id,
-                    "values": embedding,
-                    "metadata": {
-                        "store": store,
-                        "pricePerUnit": pricePerUnit
+            index.upsert(
+                vectors=[
+                    {
+                        "id": product_id,
+                        "values": embedding,
+                        "metadata": {
+                            "store": store,
+                            "pricePerUnit": pricePerUnit
+                        }
                     }
-                }
-            ],
-            namespace="products"
-        )
-        logging.info(f"Upserted product {product_id}, name: {name}, store: {store}, price per unit: {pricePerUnit} to Pinecone.")
+                ],
+                namespace="products"
+            )
+            logging.info(f"Upserted product {product_id}, name: {name}, store: {store}, price per unit: {pricePerUnit} to Pinecone.")
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     except Exception as e:
         logging.error(f"Error processing message: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
 def listen_for_updates(model, index):
