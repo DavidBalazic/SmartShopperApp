@@ -52,7 +52,7 @@ builder.Services.AddScoped<IProductService, UserService.Services.ProductService>
 builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceClient>((serviceProvider, options) =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    var baseAddress = configuration["Services:PriceAggregationService:BaseAddress"];
+    var baseAddress = configuration["Services:ProductService:BaseAddress"];
     options.Address = new Uri(baseAddress); 
 });
 

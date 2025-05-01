@@ -12,6 +12,7 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func StartGRPCServer(cfg *config.Config) {
@@ -19,16 +20,18 @@ func StartGRPCServer(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-	productRepo := repo.NewMongoProductRepository()
-	productService := services.NewProductService(productRepo)
-	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_queue)
+	rabbitPublisher, err := rabbitmq.NewPublisher(cfg.Rabbitmq.Rabbitmq_host, cfg.Rabbitmq.Rabbitmq_port, cfg.Rabbitmq.Rabbitmq_user, cfg.Rabbitmq.Rabbitmq_pass, cfg.Rabbitmq.Rabbitmq_queue)
 	if err != nil {
 		log.Fatalf("Failed to initialize RabbitMQ publisher: %v", err)
 	}
 	defer rabbitPublisher.Close()
-	controller := controllers.NewProductController(productService, rabbitPublisher)
+	productRepo := repo.NewMongoProductRepository()
+	productService := services.NewProductService(productRepo, rabbitPublisher)
+	controller := controllers.NewProductController(productService)
 
 	grpcServer := grpc.NewServer()
+
+	reflection.Register(grpcServer)
 
 	proto.RegisterProductServiceServer(grpcServer, controller)
 
