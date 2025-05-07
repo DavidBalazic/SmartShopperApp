@@ -1,7 +1,7 @@
 import pika
 import json
 import logging
-from app.helpers.pinecone_helpers import get_embedding
+from app.helpers.pinecone_helpers import get_document_embedding
 from app.core.config import Config
 
 def callback(ch, method, properties, body, model, index):
@@ -19,7 +19,7 @@ def callback(ch, method, properties, body, model, index):
             store = message.get("store", "")
             pricePerUnit = message.get("pricePerUnit", "")
 
-            embedding = get_embedding(name, model)
+            embedding = get_document_embedding(name, model)
 
             index.upsert(
                 vectors=[
