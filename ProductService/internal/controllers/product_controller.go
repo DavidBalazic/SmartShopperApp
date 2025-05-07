@@ -36,9 +36,9 @@ func (s *ProductController) GetProductById(ctx context.Context, req *proto.Produ
 }
 
 func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProductRequest) (*proto.ProductResponse, error) {
-	if req.GetName() == "" || req.GetPrice() == 0 || req.GetQuantity() == 0 || req.GetUnit() == "" || req.GetStore() == ""  || req.GetPricePerUnit() == 0 { 
-		return nil, status.Error(codes.InvalidArgument, "product name, price, quantity, unit, store and price per unit are required")
-	}
+	// if req.GetName() == "" || req.GetPrice() == 0 || req.GetQuantity() == 0 || req.GetUnit() == "" || req.GetStore() == ""  || req.GetPricePerUnit() == 0 { 
+	// 	return nil, status.Error(codes.InvalidArgument, "product name, price, quantity, unit, store and price per unit are required")
+	// }
 
 	product := models.Product{
 		Name:         req.GetName(),
@@ -77,9 +77,9 @@ func (s *ProductController) AddProducts(ctx context.Context, req *proto.AddProdu
 	var productModels []models.Product
 
 	for _, p := range req.GetProducts() {
-		if p.GetName() == "" || p.GetPrice() == 0 || p.GetQuantity() == 0 || p.GetUnit() == "" || p.GetStore() == "" || p.GetPricePerUnit() == 0 {
-			return nil, status.Error(codes.InvalidArgument, "all product fields are required")
-		}
+		// if p.GetName() == "" || p.GetPrice() == 0 || p.GetQuantity() == 0 || p.GetUnit() == "" || p.GetStore() == "" || p.GetPricePerUnit() == 0 {
+		// 	return nil, status.Error(codes.InvalidArgument, "all product fields are required")
+		// }
 
 		product := models.Product{
 			Name:         p.GetName(),

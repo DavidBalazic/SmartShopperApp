@@ -14,15 +14,21 @@ def initialize_pinecone(api_key, index_name, dimension):
     index = pc.Index(name=index_name)
     return pc, index
 
-def get_embeddings(texts, model):
-    return model.encode(texts, convert_to_tensor=False).tolist()
+def get_document_embeddings(texts, model):
+    return model.encode(texts, convert_to_tensor=False, prompt_name="document").tolist()
 
-def get_embedding(text, model):
-    return get_embeddings([text], model)[0]
+def get_document_embedding(text, model):
+    return get_document_embeddings([text], model)[0]
+
+def get_query_embeddings(texts, model):
+    return model.encode(texts, convert_to_tensor=False, prompt_name="query").tolist()
+
+def get_query_embedding(text, model):
+    return get_query_embeddings([text], model)[0]
 
 def query_from_pinecone(query, index, model, namespace, top_k=3, include_metadata=True):
     # get embedding from THE SAME embedder as the documents
-    query_embedding = get_embedding(query, model)
+    query_embedding = get_query_embedding(query, model)
 
     return index.query(
         vector=query_embedding,
