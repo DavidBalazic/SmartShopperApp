@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 import time
 import json
+import os
 
 def fetch_lidl_data():
     try:
@@ -36,6 +37,9 @@ def fetch_lidl_data():
                 break
             
         print(f"Total products fetched: {len(all_products)}") 
+        
+        os.makedirs("data/raw/lidl", exist_ok=True)
+        
         file_path = "data/raw/lidl/lidl_data.json"
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(all_products, file, ensure_ascii=False, indent=2)
