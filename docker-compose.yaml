@@ -48,6 +48,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  # Gateways
   kong-db:
     image: postgres:13
     environment:
@@ -127,6 +128,35 @@ services:
       - ./tyk/tyk.conf:/opt/tyk-gateway/tyk.conf
       - ./tyk/apps:/opt/tyk-gateway/apps
     restart: on-failure
+
+  # Frotnend
+  mfe-user:
+    build:
+      context: ./frontend/mfe-user
+      dockerfile: Dockerfile
+    ports:
+      - "3003:80"
+    environment:
+      REACT_APP_USER_SERVICE: http://kong:8000/api/user
+
+  mfe-search:
+    build:
+      context: ./frontend/mfe-search
+      dockerfile: Dockerfile
+    ports:
+      - "3002:80"
+    environment:
+      REACT_APP_SEARCH_SERVICE: http://kong:8000/search
+
+  shell:
+    build:
+      context: ./frontend/shell
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_SEARCH_APP_URL: http://mfe-search
+      REACT_APP_USER_APP_URL: http://mfe-user
 
 volumes:
   rabbitmq_data:
