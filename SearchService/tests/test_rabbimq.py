@@ -4,7 +4,7 @@ from app.rabbitmq.consumer import callback
 from app.services.pinecone_service import PineconeService
 from app.services.embedding_service import EmbeddingService
 
-@patch("app.rabbitmq.consumer.get_embedding")
+@patch("app.rabbitmq.consumer.get_document_embedding")
 def test_callback_success(mock_get_embedding):
     mock_channel = MagicMock()
     mock_method = MagicMock(delivery_tag=123)
@@ -32,7 +32,7 @@ def test_callback_success(mock_get_embedding):
     mock_channel.basic_ack.assert_called_once_with(delivery_tag=123)
 
 
-@patch("app.rabbitmq.consumer.get_embedding")
+@patch("app.rabbitmq.consumer.get_document_embedding")
 def test_callback_failure(mock_get_embedding):
     mock_get_embedding.return_value = [0.1, 0.2, 0.3]
     
@@ -54,4 +54,4 @@ def test_callback_failure(mock_get_embedding):
 
     callback(mock_channel, mock_method, mock_properties, body, model, index)
     
-    mock_channel.basic_nack.assert_called_once_with(delivery_tag=999, requeue=True)
+    mock_channel.basic_nack.assert_called_once_with(delivery_tag=999, requeue=False)
