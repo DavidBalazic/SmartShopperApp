@@ -52,7 +52,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/smartshopper-user_service:dev UserService
-          docker tag ${{ secrets.DOCKER_USERNAME }}/smartshopper-user_service:dev ${{ secrets.DOCKER_USERNAME }}/user_service:${{ github.sha }}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/smartshopper-user_service:dev ${{ secrets.DOCKER_USERNAME }}/smartshopper-user_service:${{ github.sha }}
 
       - name: Push Docker image to Docker Hub
         run: |
