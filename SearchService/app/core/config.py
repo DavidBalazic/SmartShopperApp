@@ -12,3 +12,5 @@ class Config:
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
     PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME')
     GRPC_SERVER_HOST = os.getenv('GRPC_SERVER_HOST')
+    KAFKA_BROKER = os.getenv('KAFKA_BROKER')
+    KAFKA_TOPIC = os.getenv('KAFKA_TOPIC')

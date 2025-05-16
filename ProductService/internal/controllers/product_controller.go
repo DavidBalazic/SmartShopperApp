@@ -3,9 +3,13 @@ package controllers
 import (
 	"context"
 
+
 	"github.com/DavidBalazic/SmartShopperApp/internal/models"
 	"github.com/DavidBalazic/SmartShopperApp/internal/proto"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/contextkeys"
+	"github.com/DavidBalazic/SmartShopperApp/internal/helpers"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -32,13 +36,19 @@ func (s *ProductController) GetProductById(ctx context.Context, req *proto.Produ
 		return nil, err
 	}
 
-	return toProductResponse(product), nil
+	return helpers.ToProductResponse(product), nil
 }
 
 func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProductRequest) (*proto.ProductResponse, error) {
 	// if req.GetName() == "" || req.GetPrice() == 0 || req.GetQuantity() == 0 || req.GetUnit() == "" || req.GetStore() == ""  || req.GetPricePerUnit() == 0 { 
 	// 	return nil, status.Error(codes.InvalidArgument, "product name, price, quantity, unit, store and price per unit are required")
 	// }
+
+	ip, userAgent := helpers.ExtractClientInfo(ctx)
+
+	// Put metadata in context for downstream service
+	ctx = context.WithValue(ctx, contextkeys.IPKey, ip)
+	ctx = context.WithValue(ctx, contextkeys.UserAgentKey, userAgent)
 
 	product := models.Product{
 		Name:         req.GetName(),
@@ -55,7 +65,7 @@ func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProduc
 		return nil, err
 	}
 
-	return toProductResponse(createdProduct), nil
+	return helpers.ToProductResponse(createdProduct), nil
 }
 
 func (s *ProductController) GetProductsByIds(ctx context.Context, req *proto.ProductsIdsRequest) (*proto.ProductList, error) {
@@ -66,13 +76,19 @@ func (s *ProductController) GetProductsByIds(ctx context.Context, req *proto.Pro
 	if err != nil {
 		return nil, err
 	}
-	return &proto.ProductList{Products: toProtoProducts(products)}, nil
+	return &proto.ProductList{Products: helpers.ToProtoProducts(products)}, nil
 }
 
 func (s *ProductController) AddProducts(ctx context.Context, req *proto.AddProductsRequest) (*proto.ProductList, error) {
 	if len(req.GetProducts()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "at least one product is required")
 	}
+
+	ip, userAgent := helpers.ExtractClientInfo(ctx)
+
+	// Put metadata in context for downstream service
+	ctx = context.WithValue(ctx, contextkeys.IPKey, ip)
+	ctx = context.WithValue(ctx, contextkeys.UserAgentKey, userAgent)
 
 	var productModels []models.Product
 
@@ -99,33 +115,5 @@ func (s *ProductController) AddProducts(ctx context.Context, req *proto.AddProdu
 		return nil, err
 	}
 
-	return &proto.ProductList{Products: toProtoProducts(createdProducts)}, nil
-}
-
-// Helper functions for conversion
-func toProductResponse(p models.Product) *proto.ProductResponse {
-	return &proto.ProductResponse{
-		Product: toProtoProduct(p),
-	}
-}
-
-func toProtoProducts(products []models.Product) []*proto.Product {
-	result := make([]*proto.Product, 0, len(products))
-	for _, p := range products {
-		result = append(result, toProtoProduct(p))
-	}
-	return result
-}
-
-func toProtoProduct(p models.Product) *proto.Product {
-	return &proto.Product{
-		Id:           p.ID,
-		Name:         p.Name,
-		Description:  p.Description,
-		Price:        p.Price,
-		Quantity:     p.Quantity,
-		Unit:         p.Unit,
-		Store:        p.Store,
-		PricePerUnit: p.PricePerUnit,
-	}
+	return &proto.ProductList{Products: helpers.ToProtoProducts(createdProducts)}, nil
 }

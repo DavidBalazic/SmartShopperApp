@@ -3,7 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using UserService.DTOs;
+using UserService.DTOs.Audit;
+using UserService.DTOs.User;
 using UserService.Interfaces;
 using UserService.Models;
 
@@ -14,12 +15,14 @@ namespace UserService.Services
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IAuditLogger _auditLogger;
 
-        public UsersService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public UsersService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, IAuditLogger auditLogger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _auditLogger = auditLogger;
         }
 
         public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDto)
@@ -39,6 +42,22 @@ namespace UserService.Services
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
+            var auditDetails = new Dictionary<string, object> 
+            {
+                { "username", registerDto.Username },
+                { "email", registerDto.Email },
+                { "status", result.Succeeded ? "success" : "fail" }
+            };
+
+            await _auditLogger.LogAsync(new AuditLog
+            {
+                Actor = new AuditActor { ID = registerDto.Username },
+                Action = "register",
+                Resource = "user",
+                Service = "UserService",
+                Details = auditDetails
+            });
+
             if (!result.Succeeded)
             {
                 return new RegisterResponse { Success = false, Message = "User creation failed. Please check the details and try again." };
@@ -50,7 +69,22 @@ namespace UserService.Services
         public async Task<TokenResponseDTO> LoginUserAsync(LoginDTO loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Username);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            var loginSuccess = user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password);
+
+            await _auditLogger.LogAsync(new AuditLog
+            {
+                Actor = new AuditActor { ID = loginDto.Username },
+                Action = "login",
+                Resource = "user",
+                Service = "UserService",
+                Details = new Dictionary<string, object>
+                {
+                    { "username", loginDto.Username },
+                    { "status", loginSuccess ? "success" : "fail" }
+                }
+            });
+
+            if (!loginSuccess)
                 throw new UnauthorizedAccessException("Invalid credentials");
 
             var userRoles = await _userManager.GetRolesAsync(user);

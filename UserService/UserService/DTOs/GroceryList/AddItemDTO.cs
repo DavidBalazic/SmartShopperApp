@@ -1,4 +1,4 @@
-﻿namespace UserService.DTOs
+﻿namespace UserService.DTOs.GroceryList
 {
     public class AddItemDTO
     {

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using UserService.Data;
-using UserService.DTOs;
+using UserService.DTOs.Product;
 using UserService.Interfaces;
 using UserService.Models;
 using UserService.Services;

@@ -7,11 +7,11 @@ using System.Reflection;
 using System.Text;
 using UserService.Data;
 using UserService.Interfaces;
-using UserService.Models;
 using UserService.Services;
 using UserService.Protos;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
+using UserService.Models.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +24,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+
+builder.Services.Configure<KafkaSettings>(
+    builder.Configuration.GetSection("Kafka"));
 
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,7 +47,7 @@ builder.Services.AddAuthentication(options => {
         };
     });
 
-
+builder.Services.AddSingleton<IAuditLogger, KafkaAuditLogger>();
 builder.Services.AddScoped<IUserService, UsersService>();
 builder.Services.AddScoped<IGroceryListService, GroceryListService>();
 builder.Services.AddScoped<IProductService, UserService.Services.ProductService>();
@@ -55,6 +58,9 @@ builder.Services.AddGrpcClient<UserService.Protos.ProductService.ProductServiceC
     var baseAddress = configuration["Services:ProductService:BaseAddress"];
     options.Address = new Uri(baseAddress); 
 });
+
+// To extract ip and user-agent from requests
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
