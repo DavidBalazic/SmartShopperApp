@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using UserService.DTOs;
+using UserService.DTOs.User;
 using UserService.Interfaces;
 
 namespace UserService.Controllers

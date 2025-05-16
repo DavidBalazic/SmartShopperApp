@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using UserService.DTOs;
+using UserService.DTOs.Product;
 using UserService.Interfaces;
 using UserService.Protos;
 

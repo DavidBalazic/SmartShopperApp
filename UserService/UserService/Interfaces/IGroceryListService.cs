@@ -1,4 +1,4 @@
-﻿using UserService.DTOs;
+﻿using UserService.DTOs.GroceryList;
 
 namespace UserService.Interfaces
 {

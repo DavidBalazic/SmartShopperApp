@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using UserService.DTOs;
+using UserService.DTOs.GroceryList;
 using UserService.Interfaces;
 
 namespace UserService.Controllers

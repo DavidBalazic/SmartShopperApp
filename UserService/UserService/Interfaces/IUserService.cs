@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using UserService.DTOs;
+using UserService.DTOs.User;
 
 namespace UserService.Interfaces
 {

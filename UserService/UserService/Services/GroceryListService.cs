@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
 using UserService.Data;
-using UserService.DTOs;
+using UserService.DTOs.GroceryList;
+using UserService.DTOs.Product;
 using UserService.Interfaces;
 using UserService.Models;
 
