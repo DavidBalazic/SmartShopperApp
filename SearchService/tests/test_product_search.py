@@ -35,11 +35,13 @@ def fake_get_model():
 def fake_get_index():
     return MagicMock(name="FakeIndex")
 
+@patch("app.routes.product_search.send_audit_log")
 @patch("app.routes.product_search.get_product_by_id")
 @patch("app.routes.product_search.query_products")
-def test_get_cheapest_product(mock_query_from_pinecone, mock_get_product_by_id):
+def test_get_cheapest_product(mock_query_from_pinecone, mock_get_product_by_id, mock_send_audit_log):
     mock_query_from_pinecone.return_value = mock_pinecone_results
     mock_get_product_by_id.return_value = mock_product_service_result
+    mock_send_audit_log.return_value = None
     app.dependency_overrides[get_model] = fake_get_model
     app.dependency_overrides[get_index] = fake_get_index
     
@@ -51,12 +53,14 @@ def test_get_cheapest_product(mock_query_from_pinecone, mock_get_product_by_id):
     assert data["pricePerUnit"] == 2.5
     
     app.dependency_overrides = {}
-    
+
+@patch("app.routes.product_search.send_audit_log")
 @patch("app.routes.product_search.get_product_by_id")
 @patch("app.routes.product_search.query_products")
-def test_get_cheapest_product_with_store_filter(mock_query_from_pinecone, mock_get_product_by_id):
+def test_get_cheapest_product_with_store_filter(mock_query_from_pinecone, mock_get_product_by_id, mock_send_audit_log):
     mock_query_from_pinecone.return_value = mock_pinecone_results
     mock_get_product_by_id.return_value = mock_product_service_result
+    mock_send_audit_log.return_value = None
     app.dependency_overrides[get_model] = fake_get_model
     app.dependency_overrides[get_index] = fake_get_index
 
@@ -74,3 +78,5 @@ def test_get_cheapest_product_with_store_filter(mock_query_from_pinecone, mock_g
         model=ANY,
         index=ANY
     )
+    
+    app.dependency_overrides = {}
