@@ -18,7 +18,8 @@ func TestProductService_FindProductByID_OneProduct(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -51,7 +52,8 @@ func TestProductService_FindProductsByIDs_OneProduct(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -85,7 +87,8 @@ func TestProductService_FindProductsByIDs_MultipleProducts(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -129,7 +132,8 @@ func TestProductService_FindProductsByIDs_SomeInvalidIds(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -172,7 +176,8 @@ func TestProductService_AddProduct_Success(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -196,6 +201,11 @@ func TestProductService_AddProduct_Success(t *testing.T) {
 	mockRabbitmq.EXPECT().
 		PublishSingleProduct(gomock.Any()).Times(1)
 
+	mockAuditLogger.EXPECT().
+    	PublishAuditLog(gomock.Any(), gomock.Any()).
+    	Return(nil).
+    	Times(1)
+
 	result, err := productService.AddProduct(ctx, product)
 
 	assert.NoError(t, err)
@@ -211,7 +221,8 @@ func TestProductService_AddProducts_Success(t *testing.T) {
 
 	mockRepo := mocks.NewMockProductRepository(ctrl)
 	mockRabbitmq := mocks.NewMockPublisher(ctrl)
-	productService := services.NewProductService(mockRepo, mockRabbitmq)
+	mockAuditLogger := mocks.NewMockAuditLogger(ctrl)
+	productService := services.NewProductService(mockRepo, mockRabbitmq, mockAuditLogger)
 
 	ctx := context.Background()
 
@@ -287,6 +298,11 @@ func TestProductService_AddProducts_Success(t *testing.T) {
 		PublishMultipleProducts(gomock.Any()).
 		Return(nil).
 		Times(1) 
+
+	mockAuditLogger.EXPECT().
+    	PublishAuditLog(gomock.Any(), gomock.Any()).
+    	Return(nil).
+    	Times(1)
 
 	result, err := productService.AddProducts(ctx, products)
 

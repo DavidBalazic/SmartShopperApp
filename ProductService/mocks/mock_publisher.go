@@ -12,6 +12,7 @@ package mocks
 import (
 	reflect "reflect"
 
+	dtos "github.com/DavidBalazic/SmartShopperApp/internal/dtos"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -39,7 +40,7 @@ func (m *MockPublisher) EXPECT() *MockPublisherMockRecorder {
 }
 
 // PublishMultipleProducts mocks base method.
-func (m *MockPublisher) PublishMultipleProducts(messages []map[string]any) error {
+func (m *MockPublisher) PublishMultipleProducts(messages []dtos.ProductMessage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PublishMultipleProducts", messages)
 	ret0, _ := ret[0].(error)
@@ -53,7 +54,7 @@ func (mr *MockPublisherMockRecorder) PublishMultipleProducts(messages any) *gomo
 }
 
 // PublishSingleProduct mocks base method.
-func (m *MockPublisher) PublishSingleProduct(message map[string]any) error {
+func (m *MockPublisher) PublishSingleProduct(message dtos.ProductMessage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PublishSingleProduct", message)
 	ret0, _ := ret[0].(error)

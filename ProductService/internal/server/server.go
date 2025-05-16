@@ -11,6 +11,7 @@ import (
 	"github.com/DavidBalazic/SmartShopperApp/internal/rabbitmq"
 	"github.com/DavidBalazic/SmartShopperApp/internal/repo"
 	"github.com/DavidBalazic/SmartShopperApp/internal/services"
+	"github.com/DavidBalazic/SmartShopperApp/internal/kafka"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -25,8 +26,15 @@ func StartGRPCServer(cfg *config.Config) {
 		log.Fatalf("Failed to initialize RabbitMQ publisher: %v", err)
 	}
 	defer rabbitPublisher.Close()
+
+	kafkaPublisher, err := kafka.NewKafkaPublisher(cfg.Kafka.Brokers, cfg.Kafka.Topic)
+	if err != nil {
+		log.Fatalf("Failed to initialize Kafka publisher: %v", err)
+	}
+	defer kafkaPublisher.Close()
+
 	productRepo := repo.NewMongoProductRepository()
-	productService := services.NewProductService(productRepo, rabbitPublisher)
+	productService := services.NewProductService(productRepo, rabbitPublisher, kafkaPublisher)
 	controller := controllers.NewProductController(productService)
 
 	grpcServer := grpc.NewServer()

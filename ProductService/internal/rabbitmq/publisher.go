@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	amqp "github.com/rabbitmq/amqp091-go"
+
+	"github.com/DavidBalazic/SmartShopperApp/internal/dtos"
 )
 
 type Publisher interface {
-	PublishSingleProduct(message map[string]interface{}) error
-	PublishMultipleProducts(messages []map[string]interface{}) error
+	PublishSingleProduct(message dtos.ProductMessage) error
+	PublishMultipleProducts(messages []dtos.ProductMessage) error
 }
 
 type RabbitMQPublisher struct {
@@ -55,7 +57,7 @@ func NewPublisher(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPass, Rabbit
 }
 
 // Publish sends a message to the RabbitMQ queue
-func (p *RabbitMQPublisher) PublishSingleProduct(message map[string]interface{}) error {
+func (p *RabbitMQPublisher) PublishSingleProduct(message dtos.ProductMessage) error {
 	// Convert the message to a byte slice (example: JSON encoding)
 	// Here we're assuming the message is a map and you need to serialize it as JSON
 	body, err := json.Marshal(message)
@@ -84,7 +86,7 @@ func (p *RabbitMQPublisher) PublishSingleProduct(message map[string]interface{})
 	return nil
 }
 
-func (p *RabbitMQPublisher) PublishMultipleProducts(message []map[string]interface{}) error {
+func (p *RabbitMQPublisher) PublishMultipleProducts(message []dtos.ProductMessage) error {
 	// Convert the message to a byte slice (example: JSON encoding)
 	// Here we're assuming the message is a map and you need to serialize it as JSON
 	body, err := json.Marshal(message)
