@@ -5,14 +5,10 @@ package product;
 option csharp_namespace = "UserService.Protos";
 
 service ProductService {
-    rpc GetCheapestProduct(ProductRequest) returns (ProductResponse);
-    rpc GetAllPrices(ProductRequest) returns (ProductList);
-    rpc GetCheapestByStore(StoreRequest) returns (ProductResponse);
     rpc GetProductById(ProductIdRequest) returns (ProductResponse);
-}
-
-message ProductRequest {
-    string name = 1;
+    rpc AddProduct(AddProductRequest) returns (ProductResponse);
+    rpc GetProductsByIds(ProductsIdsRequest) returns (ProductList);
+    rpc AddProducts(AddProductsRequest) returns (ProductList);
 }
 
 message Product {
@@ -34,11 +30,24 @@ message ProductList {
     repeated Product products = 1;
 }
 
-message StoreRequest {
-    string name = 1;
-    string store = 2;
-}
-
 message ProductIdRequest {
     string id = 1;
+}
+
+message AddProductRequest {
+    string name = 1;
+    string description = 2;
+    double price = 3;
+    double quantity = 4;
+    string unit = 5;
+    string store = 6;
+    double pricePerUnit = 7;
+}
+
+message AddProductsRequest {
+    repeated AddProductRequest products = 1;
+}
+
+message ProductsIdsRequest {
+    repeated string ids = 1;
 }

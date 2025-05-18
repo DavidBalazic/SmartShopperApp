@@ -11,85 +11,150 @@ namespace UserService.Tests;
 
 public class GroceryListServiceTests
 {
+    private readonly GroceryListService _service;
     private readonly UserContext _context;
-    private readonly Mock<IProductService> _productServiceMock;
-    private readonly Mock<ILogger<GroceryListService>> _loggerMock;
-    private readonly GroceryListService _groceryListService;
+    private readonly Mock<IProductService> _mockProductService;
+    private readonly Mock<ILogger<GroceryListService>> _mockLogger;
 
     public GroceryListServiceTests()
     {
         var options = new DbContextOptionsBuilder<UserContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-
         _context = new UserContext(options);
-        _productServiceMock = new Mock<IProductService>();
-        _loggerMock = new Mock<ILogger<GroceryListService>>();
 
-        _groceryListService = new GroceryListService(_context, _productServiceMock.Object, _loggerMock.Object);
+        _mockProductService = new Mock<IProductService>();
+        _mockLogger = new Mock<ILogger<GroceryListService>>();
+        _service = new GroceryListService(_context, _mockProductService.Object, _mockLogger.Object);
     }
 
     [Fact]
-    public async Task CreateListAsync_ShouldCreateListAndReturnId()
+    public async Task CreateGroceryListAsync_ShouldCreateListWithDefaults()
     {
-        string userId = "user123";
-        string listName = "Weekly Shopping";
+        // Arrange
+        var userId = "user123";
+        var listName = "";
+        var productIds = new List<string> { "p1", "p2" };
 
-        int listId = await _groceryListService.CreateListAsync(userId, listName);
+        _mockProductService.Setup(p => p.GetProductsByIdsAsync(productIds))
+            .ReturnsAsync(productIds.Select(id => new ProductDTO { Id = id }).ToList());
 
-        var list = await _context.GroceryLists.FindAsync(listId);
-        Assert.NotNull(list);
-        Assert.Equal(userId, list.UserId);
-        Assert.Equal(listName, list.Name);
+        // Act
+        var result = await _service.CreateGroceryListAsync(userId, listName, productIds);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Items.Count);
+        Assert.Contains("Shopping list for", result.Name);
+        Assert.True(_context.GroceryLists.Any(gl => gl.UserId == userId));
     }
+
     [Fact]
-    public async Task AddItemAsync_ShouldAddItemToList()
+    public async Task GetUserGroceryListsAsync_ShouldReturnUserLists()
     {
-        var groceryList = new GroceryListModel { UserId = "user123", Name = "My List" };
-        _context.GroceryLists.Add(groceryList);
-        await _context.SaveChangesAsync();
+        // Arrange
+        var userId = "user1";
+        _context.GroceryLists.Add(new GroceryListModel { UserId = userId, Name = "Weekly", CreatedAt = DateTime.UtcNow });
+        _context.SaveChanges();
 
-        string productId = "product123";
+        // Act
+        var lists = await _service.GetUserGroceryListsAsync(userId);
 
-        await _groceryListService.AddItemAsync(groceryList.Id, productId);
-
-        var item = await _context.GroceryItems.FirstOrDefaultAsync(i => i.ProductId == productId);
-        Assert.NotNull(item);
-        Assert.Equal(groceryList.Id, item.GroceryListId);
+        // Assert
+        Assert.Single(lists);
+        Assert.Equal("Weekly", lists.First().Name);
     }
+
     [Fact]
-    public async Task GetUserListsAsync_ShouldReturnUserListsWithProducts()
+    public async Task GetGroceryListByIdAsync_ReturnsListWithProducts()
     {
-        string userId = "user123";
-
-        var groceryList = new GroceryListModel { UserId = userId, Name = "My List", Items = new List<GroceryItem>() };
-        _context.GroceryLists.Add(groceryList);
-        await _context.SaveChangesAsync();
-
-        var product = new ProductDTO
+        // Arrange
+        var userId = "user1";
+        var list = new GroceryListModel
         {
-            Id = "product123",
-            Name = "Milk",
-            Description = "1L Milk",
-            Price = 1.99,
-            Quantity = 1,
-            Unit = "L",
-            Store = "Supermarket",
-            PricePerUnit = 1.99
+            UserId = userId,
+            Name = "TestList",
+            Items = new List<GroceryItem> { new GroceryItem { ProductId = "p1" } }
         };
+        _context.GroceryLists.Add(list);
+        _context.SaveChanges();
 
-        _productServiceMock
-            .Setup(service => service.GetProductByIdAsync("product123"))
-            .ReturnsAsync(product);
+        _mockProductService.Setup(p => p.GetProductsByIdsAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new List<ProductDTO> { new ProductDTO { Id = "p1" } });
 
-        groceryList.Items.Add(new GroceryItem { ProductId = "product123", GroceryListId = groceryList.Id });
-        await _context.SaveChangesAsync();
+        // Act
+        var result = await _service.GetGroceryListByIdAsync(list.Id, userId);
 
-        var result = await _groceryListService.GetUserListsAsync(userId);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("TestList", result.Name);
+        Assert.Single(result.Items);
+    }
 
-        Assert.Single(result);
-        Assert.Equal("My List", result[0].Name);
-        Assert.Single(result[0].Items);
-        Assert.Equal("Milk", result[0].Items[0].Name);
+    [Fact]
+    public async Task DeleteGroceryListAsync_DeletesList()
+    {
+        // Arrange
+        var userId = "user2";
+        var list = new GroceryListModel { UserId = userId, Name = "ToDelete" };
+        _context.GroceryLists.Add(list);
+        _context.SaveChanges();
+
+        // Act
+        var success = await _service.DeleteGroceryListAsync(list.Id, userId);
+
+        // Assert
+        Assert.True(success);
+        Assert.Empty(_context.GroceryLists.Where(l => l.Id == list.Id));
+    }
+
+    [Fact]
+    public async Task AddItemsToListAsync_AddsItemsCorrectly()
+    {
+        // Arrange
+        var userId = "user3";
+        var list = new GroceryListModel
+        {
+            UserId = userId,
+            Name = "ToAddTo",
+            Items = new List<GroceryItem>()
+        };
+        _context.GroceryLists.Add(list);
+        _context.SaveChanges();
+
+        var newProductIds = new List<string> { "p10", "p20" };
+
+        // Act
+        var result = await _service.AddItemsToListAsync(list.Id, userId, newProductIds);
+
+        // Assert
+        Assert.True(result);
+        var updatedList = _context.GroceryLists.Include(gl => gl.Items).First(gl => gl.Id == list.Id);
+        Assert.Equal(2, updatedList.Items.Count);
+    }
+
+    [Fact]
+    public async Task RemoveItemAsync_RemovesCorrectItem()
+    {
+        // Arrange
+        var userId = "user4";
+        var item = new GroceryItem { ProductId = "x" };
+        var list = new GroceryListModel
+        {
+            UserId = userId,
+            Name = "WithItem",
+            Items = new List<GroceryItem> { item }
+        };
+        _context.GroceryLists.Add(list);
+        _context.SaveChanges();
+
+        var itemId = list.Items.First().Id;
+
+        // Act
+        var result = await _service.RemoveItemAsync(itemId, userId);
+
+        // Assert
+        Assert.True(result);
+        Assert.Empty(_context.GroceryItems);
     }
 }
