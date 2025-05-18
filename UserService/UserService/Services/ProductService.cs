@@ -45,5 +45,36 @@ namespace UserService.Services
                 return null;
             }
         }
+
+        public async Task<List<ProductDTO>> GetProductsByIdsAsync(List<string> productIds)
+        {
+            var request = new ProductsIdsRequest();
+            request.Ids.AddRange(productIds);
+
+            _logger.LogInformation("Sending request to gRPC service to fetch products by IDs: {Ids}", string.Join(", ", productIds));
+
+            try
+            {
+                var response = await _productClient.GetProductsByIdsAsync(request);
+                _logger.LogInformation("Received {Count} products from gRPC", response.Products.Count);
+
+                return response.Products.Select(p => new ProductDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    Unit = p.Unit,
+                    Store = p.Store,
+                    PricePerUnit = p.PricePerUnit
+                }).ToList();
+            }
+            catch (RpcException ex)
+            {
+                _logger.LogError(ex, "gRPC error during GetProductsByIdsAsync: {Status}", ex.Status);
+                return new List<ProductDTO>();
+            }
+        }
     }
 }
