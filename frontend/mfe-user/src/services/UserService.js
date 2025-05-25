@@ -58,23 +58,6 @@ class UserService {
         localStorage.removeItem("auth_token_expiration");
     }
 
-    async addHistory(term) {
-      const response = await fetch(`${API_URL}/history`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.token}`,
-        },
-        body: JSON.stringify({ term }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add to history");
-      }
-
-      return response.json();
-    }
-
     setToken(token) {
       this.token = token;
     }
