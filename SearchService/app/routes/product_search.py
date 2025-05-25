@@ -9,7 +9,7 @@ from app.utils.audit_logger import send_audit_log
 
 router = APIRouter()
 
-@router.get("/cheapest-product/", response_model=Optional[Product])
+@router.get("/cheapest-product", response_model=Optional[Product])
 def get_cheapest_product(
     request: Request,
     q: str = Query(..., description="Search query text"),
@@ -63,7 +63,7 @@ def get_cheapest_product(
 
     return product
     
-@router.get("/search-products/", response_model=list[Product])
+@router.get("/search-products", response_model=list[Product])
 def get_all_matching_products(
     request: Request,
     q: str = Query(..., description="Search query text"),
