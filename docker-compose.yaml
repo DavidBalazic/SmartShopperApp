@@ -6,7 +6,9 @@ services:
     ports:
       - "7207:8080"
     env_file:
-      - .env
+      - ./UserService/UserService/.env
+    depends_on:
+      - postgres-user
 
   productservice:
     build:
@@ -15,10 +17,12 @@ services:
     ports:
       - "50051:50051"
     env_file:
-      - .env
+      - ./ProductService/.env
     depends_on:
       rabbitmq:
         condition: service_healthy
+      mongodb:
+        condition: service_started
   
   searchservice:
     build:
@@ -27,7 +31,7 @@ services:
     ports:
       - "5000:8000"
     env_file:
-      - .env
+      - ./SearchService/.env
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -39,9 +43,10 @@ services:
     ports:
       - "8088:8080"
     env_file:
-      - .env
+      - ./AuditService/.env
     depends_on:
       - kafka
+      - mongodb
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -165,7 +170,31 @@ services:
       - ./tyk/apps:/opt/tyk-gateway/apps
     restart: on-failure
 
-  # Frotnend
+  # Databases 
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  postgres-user:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: david
+      POSTGRES_PASSWORD: david
+      POSTGRES_DB: User
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  # Frontend
   mfe-user:
     build:
       context: ./frontend/mfe-user
@@ -182,7 +211,7 @@ services:
     ports:
       - "3002:80"
     environment:
-      REACT_APP_SEARCH_SERVICE: http://kong:8000/search
+      REACT_APP_SEARCH_SERVICE: http://kong:8000
 
   shell:
     build:
@@ -198,4 +227,8 @@ volumes:
   rabbitmq_data:
     driver: local
   kong_data:
+    driver: local
+  mongo_data:
+    driver: local
+  postgres_data:
     driver: local
