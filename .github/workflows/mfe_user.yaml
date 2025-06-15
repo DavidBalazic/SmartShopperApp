@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/mfe-user/**'
+      - 'micro-frontends/mfe-user/**'
   pull_request:
     branches:
       - main
     paths:
-      - 'frontend/mfe-user/**'
+      - 'micro-frontends/mfe-user/**'
   workflow_dispatch:
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/smartshopper-mfe_user:dev frontend/mfe-user
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/smartshopper-mfe_user:dev micro-frontends/mfe-user
           docker tag ${{ secrets.DOCKER_USERNAME }}/smartshopper-mfe_user:dev ${{ secrets.DOCKER_USERNAME }}/smartshopper-mfe_user:${{ github.sha }}
 
       - name: Push Docker image to Docker Hub
