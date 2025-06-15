@@ -36,7 +36,8 @@ namespace UserService.Services
                     Quantity = product.Quantity,
                     Unit = product.Unit,
                     Store = product.Store,
-                    PricePerUnit = product.PricePerUnit
+                    PricePerUnit = product.PricePerUnit,
+                    ImageUrl = product.ImageUrl
                 };
             }
             catch (RpcException ex)
@@ -67,7 +68,8 @@ namespace UserService.Services
                     Quantity = p.Quantity,
                     Unit = p.Unit,
                     Store = p.Store,
-                    PricePerUnit = p.PricePerUnit
+                    PricePerUnit = p.PricePerUnit,
+                    ImageUrl = p.ImageUrl
                 }).ToList();
             }
             catch (RpcException ex)

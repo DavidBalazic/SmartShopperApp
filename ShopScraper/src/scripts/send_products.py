@@ -22,6 +22,7 @@ def read_products_from_csv(store_name: str) -> List[product_pb2.AddProductReques
                 unit=str(row["unit"]),
                 store=str(row["store"]),
                 pricePerUnit=float(row["price_per_unit"]),
+                imageUrl=str(row["image_url"])
             )
             products.append(product)
         except Exception as e:

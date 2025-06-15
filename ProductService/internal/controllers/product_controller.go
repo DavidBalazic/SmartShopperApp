@@ -58,6 +58,7 @@ func (s *ProductController) AddProduct(ctx context.Context, req *proto.AddProduc
 		Unit:         req.GetUnit(),
 		Store:        req.GetStore(),
 		PricePerUnit: req.GetPricePerUnit(),
+		ImageUrl:     req.GetImageUrl(),
 	}
 
 	createdProduct, err := s.service.AddProduct(ctx, product)
@@ -105,6 +106,7 @@ func (s *ProductController) AddProducts(ctx context.Context, req *proto.AddProdu
 			Unit:         p.GetUnit(),
 			Store:        p.GetStore(),
 			PricePerUnit: p.GetPricePerUnit(),
+			ImageUrl:     p.GetImageUrl(),
 		}
 
 		productModels = append(productModels, product)

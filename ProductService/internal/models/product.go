@@ -9,4 +9,5 @@ type Product struct {
 	Unit         string  `bson:"unit"`
 	Store        string  `bson:"store"`
 	PricePerUnit float64 `bson:"pricePerUnit"`
+	ImageUrl     string  `bson:"imageUrl"`
 }

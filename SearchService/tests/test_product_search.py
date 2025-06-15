@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock, ANY
 from app.main import app 
-from app.models.product import Product
+from app.dtos.product import Product
 from app.dependencies.deps import get_model, get_index
 
 client = TestClient(app)

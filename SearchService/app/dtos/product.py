@@ -9,3 +9,4 @@ class Product(BaseModel):
     unit: str
     store: str
     pricePerUnit: Optional[float]
+    imageUrl: str

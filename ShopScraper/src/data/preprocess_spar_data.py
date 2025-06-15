@@ -13,13 +13,14 @@ def preprocess_spar_data():
         try:
             values = item.get("masterValues", {})
 
-            name = values.get("name")
+            name = values.get("title")
             description = values.get("description")
             discounted_price = values.get("best-price")
             regular_price = values.get("regular-price")
             unit = values.get("sales-unit")
             price_per_unit = values.get("price-per-unit")
             price_per_unit_number = values.get("price-per-unit-number")
+            image_url = values.get("image-url")
             products.append({
                 "name": name,
                 "store": "Spar",
@@ -28,8 +29,8 @@ def preprocess_spar_data():
                 "price": regular_price,
                 "unit": unit,
                 #"price_per_unit": price_per_unit,
-                "price_per_unit": price_per_unit_number
-                
+                "price_per_unit": price_per_unit_number,
+                "image_url": image_url
             })
             
         except Exception as e:
@@ -37,6 +38,10 @@ def preprocess_spar_data():
     
     os.makedirs("data/preprocessed/spar", exist_ok=True)
     df = pd.DataFrame(products)    
+    
+    # Drop duplicates
+    df = df.drop_duplicates(subset=["name", "store", "price"])
+    
     file_path = "data/preprocessed/spar/spar_data.csv" 
     df.to_csv(file_path, index=False)
     print(f"Saved: {file_path}")

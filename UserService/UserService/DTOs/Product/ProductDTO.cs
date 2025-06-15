@@ -10,5 +10,6 @@
         public string Store { get; set; }
         public string Unit { get; set; }
         public double PricePerUnit { get; set; }
+        public string ImageUrl { get; set; }
     }
 }

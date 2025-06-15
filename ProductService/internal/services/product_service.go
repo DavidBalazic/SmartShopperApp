@@ -75,6 +75,7 @@ func (s *productService) AddProduct(ctx context.Context, product models.Product)
 			"unit":         createdProduct.Unit,
 			"store":        createdProduct.Store,
 			"pricePerUnit": createdProduct.PricePerUnit,
+			"imageUrl":     createdProduct.ImageUrl,
 		},
 	}
 
@@ -91,6 +92,7 @@ func (s *productService) AddProduct(ctx context.Context, product models.Product)
 		Unit:         createdProduct.Unit,
 		Store:        createdProduct.Store,
 		PricePerUnit: createdProduct.PricePerUnit,
+		ImageUrl:     createdProduct.ImageUrl,
 	}
 
 	// Publish the product message to RabbitMQ
@@ -137,6 +139,7 @@ func (s *productService) AddProducts(ctx context.Context, products []models.Prod
 			Unit:         createdProduct.Unit,
 			Store:        createdProduct.Store,
 			PricePerUnit: createdProduct.PricePerUnit,
+			ImageUrl:     createdProduct.ImageUrl,
 		}
 		productMessages = append(productMessages, msg)
 	}

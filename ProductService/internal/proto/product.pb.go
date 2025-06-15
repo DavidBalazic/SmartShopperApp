@@ -31,6 +31,7 @@ type Product struct {
 	Unit          string                 `protobuf:"bytes,6,opt,name=unit,proto3" json:"unit,omitempty"`
 	Store         string                 `protobuf:"bytes,7,opt,name=store,proto3" json:"store,omitempty"`
 	PricePerUnit  float64                `protobuf:"fixed64,8,opt,name=pricePerUnit,proto3" json:"pricePerUnit,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,9,opt,name=imageUrl,proto3" json:"imageUrl,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -119,6 +120,13 @@ func (x *Product) GetPricePerUnit() float64 {
 		return x.PricePerUnit
 	}
 	return 0
+}
+
+func (x *Product) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
 }
 
 type ProductResponse struct {
@@ -262,6 +270,7 @@ type AddProductRequest struct {
 	Unit          string                 `protobuf:"bytes,5,opt,name=unit,proto3" json:"unit,omitempty"`
 	Store         string                 `protobuf:"bytes,6,opt,name=store,proto3" json:"store,omitempty"`
 	PricePerUnit  float64                `protobuf:"fixed64,7,opt,name=pricePerUnit,proto3" json:"pricePerUnit,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,8,opt,name=imageUrl,proto3" json:"imageUrl,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -343,6 +352,13 @@ func (x *AddProductRequest) GetPricePerUnit() float64 {
 		return x.PricePerUnit
 	}
 	return 0
+}
+
+func (x *AddProductRequest) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
 }
 
 type AddProductsRequest struct {
@@ -437,7 +453,7 @@ var File_internal_proto_product_proto protoreflect.FileDescriptor
 
 const file_internal_proto_product_proto_rawDesc = "" +
 	"\n" +
-	"\x1cinternal/proto/product.proto\x12\aproduct\"\xcf\x01\n" +
+	"\x1cinternal/proto/product.proto\x12\aproduct\"\xeb\x01\n" +
 	"\aProduct\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -446,13 +462,14 @@ const file_internal_proto_product_proto_rawDesc = "" +
 	"\bquantity\x18\x05 \x01(\x01R\bquantity\x12\x12\n" +
 	"\x04unit\x18\x06 \x01(\tR\x04unit\x12\x14\n" +
 	"\x05store\x18\a \x01(\tR\x05store\x12\"\n" +
-	"\fpricePerUnit\x18\b \x01(\x01R\fpricePerUnit\"=\n" +
+	"\fpricePerUnit\x18\b \x01(\x01R\fpricePerUnit\x12\x1a\n" +
+	"\bimageUrl\x18\t \x01(\tR\bimageUrl\"=\n" +
 	"\x0fProductResponse\x12*\n" +
 	"\aproduct\x18\x01 \x01(\v2\x10.product.ProductR\aproduct\";\n" +
 	"\vProductList\x12,\n" +
 	"\bproducts\x18\x01 \x03(\v2\x10.product.ProductR\bproducts\"\"\n" +
 	"\x10ProductIdRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xc9\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xe5\x01\n" +
 	"\x11AddProductRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
@@ -460,7 +477,8 @@ const file_internal_proto_product_proto_rawDesc = "" +
 	"\bquantity\x18\x04 \x01(\x01R\bquantity\x12\x12\n" +
 	"\x04unit\x18\x05 \x01(\tR\x04unit\x12\x14\n" +
 	"\x05store\x18\x06 \x01(\tR\x05store\x12\"\n" +
-	"\fpricePerUnit\x18\a \x01(\x01R\fpricePerUnit\"L\n" +
+	"\fpricePerUnit\x18\a \x01(\x01R\fpricePerUnit\x12\x1a\n" +
+	"\bimageUrl\x18\b \x01(\tR\bimageUrl\"L\n" +
 	"\x12AddProductsRequest\x126\n" +
 	"\bproducts\x18\x01 \x03(\v2\x1a.product.AddProductRequestR\bproducts\"&\n" +
 	"\x12ProductsIdsRequest\x12\x10\n" +

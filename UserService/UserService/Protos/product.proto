@@ -20,6 +20,7 @@ message Product {
     string unit = 6;
     string store = 7;
     double pricePerUnit = 8;
+    string imageUrl = 9;
 }
 
 message ProductResponse {
@@ -42,6 +43,7 @@ message AddProductRequest {
     string unit = 5;
     string store = 6;
     double pricePerUnit = 7;
+    string imageUrl = 8;
 }
 
 message AddProductsRequest {
