@@ -27,6 +27,7 @@ def callback(ch, method, properties, body, model, index):
                         "id": product_id,
                         "values": embedding,
                         "metadata": {
+                            "name": name,
                             "store": store,
                             "pricePerUnit": pricePerUnit
                         }

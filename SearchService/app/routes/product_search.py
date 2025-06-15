@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Query, Depends, Request
 from typing import Optional
-from app.models.product import Product
+from app.dtos.product import Product
 from app.services.product_search_service import query_products
 import logging
 from app.services.product_service import get_product_by_id
-from app.dependencies.deps import get_model, get_index
+from app.dependencies.deps import get_model, get_index, get_reranker
 from app.utils.audit_logger import send_audit_log
 
 router = APIRouter()
@@ -15,17 +15,38 @@ def get_cheapest_product(
     q: str = Query(..., description="Search query text"),
     store: Optional[str] = Query(None, description="Filter results by store name"),
     model=Depends(get_model),
-    index=Depends(get_index)
+    index=Depends(get_index),
+    reranker=Depends(get_reranker)
     ):
     # Extracting request metadata
     user_agent = request.headers.get("user-agent")
     ip = request.client.host
     
     logging.info(f"Received query: {q}, store: {store}")
-    matches = query_products(query=q, store=store, model=model, index=index)
+    matches = query_products(query=q, store=store, model=model, index=index, reranker=reranker)
+    
+    # If no matches found, log and return None
+    if not matches:
+        logging.warning(f"No products found for query: {q}, store: {store}")
+        
+        send_audit_log(
+            actor_id="anonymous",  
+            action="cheapest-product",
+            resource="product",
+            service="SearchService",
+            ip=ip,
+            user_agent=user_agent,
+            details={
+                "query": q,
+                "store": store,
+                "productDetail": None,
+                "message": "No products found"
+            }
+        )
+        
+        return None
     
     # Find the cheapest product
-    # TODO: handle empty
     cheapest = min(
         matches,
         key=lambda x: float(x.metadata.get("pricePerUnit", float("inf")))
@@ -42,7 +63,8 @@ def get_cheapest_product(
         quantity=product_details.quantity,
         unit=product_details.unit,
         store=product_details.store,
-        pricePerUnit=product_details.pricePerUnit
+        pricePerUnit=product_details.pricePerUnit,
+        imageUrl=product_details.imageUrl
     )
 
     # Log the audit event
@@ -69,15 +91,17 @@ def get_all_matching_products(
     q: str = Query(..., description="Search query text"),
     store: Optional[str] = Query(None, description="Optional store filter"),
     model=Depends(get_model),
-    index=Depends(get_index)
+    index=Depends(get_index),
+    reranker=Depends(get_reranker)
 ):
     # Extracting request metadata
     user_agent = request.headers.get("user-agent")
     ip = request.client.host
     
     logging.info(f"Received query: {q}, store: {store}")
-    matches = query_products(query=q, store=store, model=model, index=index)
+    matches = query_products(query=q, store=store, model=model, index=index, reranker=reranker)
 
+    # TODO: replace with get_products_by_id
     products = []
     for match in matches:
         try:
@@ -90,7 +114,8 @@ def get_all_matching_products(
                 quantity=product_details.quantity,
                 unit=product_details.unit,
                 store=product_details.store,
-                pricePerUnit=product_details.pricePerUnit
+                pricePerUnit=product_details.pricePerUnit,
+                imageUrl=product_details.imageUrl
             )
             products.append(product)
         except Exception as e:

@@ -20,10 +20,15 @@ async def lifespan(app: FastAPI):
     logging.info("Loading SentenceTransformer model...")
     container.model = EmbeddingService.load_model()
     logging.info("Model loaded.")
+    
+    logging.info("Initializing CrossEncoder model...")
+    container.reranker = EmbeddingService.load_reranker()
+    logging.info("CrossEncoder model initialized.")
 
     logging.info("Initializing Pinecone index...")
     container.index = PineconeService.initialize_index()
     logging.info("Pinecone index initialized.")
+    
 
     def run_consumer():
         try:
