@@ -1,0 +1,38 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: shell
+  name: shell
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: shell
+  template:
+    metadata:
+      labels:
+        io.kompose.service: shell
+    spec:
+      containers:
+        - env:
+            - name: REACT_APP_SEARCH_APP_URL
+              value: http://mfe-search
+            - name: REACT_APP_USER_APP_URL
+              value: http://mfe-user
+          image: docker.io/malavoda/smartshopper-mfe_shell:dev
+          name: shell
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - shell
+        from:
+          kind: ImageStreamTag
+          name: shell:latest
+      type: ImageChange

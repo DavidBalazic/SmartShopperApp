@@ -1,0 +1,58 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: kong-db
+  name: kong-db
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: kong-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: kong-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: kong
+            - name: POSTGRES_PASSWORD
+              value: kong
+            - name: POSTGRES_USER
+              value: kong
+          image: ' '
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - kong
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: kong-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: kong-data
+      restartPolicy: Always
+      volumes:
+        - name: kong-data
+          persistentVolumeClaim:
+            claimName: kong-data
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - kong-db
+        from:
+          kind: ImageStreamTag
+          name: kong-db:13
+      type: ImageChange

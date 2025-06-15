@@ -1,0 +1,38 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: zookeeper
+  name: zookeeper
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: zookeeper
+  template:
+    metadata:
+      labels:
+        io.kompose.service: zookeeper
+    spec:
+      containers:
+        - env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+          image: ' '
+          name: zookeeper
+          ports:
+            - containerPort: 2181
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - zookeeper
+        from:
+          kind: ImageStreamTag
+          name: zookeeper:7.5.0
+      type: ImageChange

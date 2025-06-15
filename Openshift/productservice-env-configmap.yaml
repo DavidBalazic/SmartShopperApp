@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  KAFKA_BROKER: kafka:9092
+  KAFKA_TOPIC: audit-logs
+  MONGO_URI: mongodb://root:password@mongodb:27017
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PASSWORD: password
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_QUEUE: product-queue
+  RABBITMQ_USER: user
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: productservice-env
+  name: productservice-env

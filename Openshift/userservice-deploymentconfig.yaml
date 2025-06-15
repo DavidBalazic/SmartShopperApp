@@ -1,0 +1,36 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: userservice
+  name: userservice
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: userservice
+  template:
+    metadata:
+      labels:
+        io.kompose.service: userservice
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: userservice-env
+          image: docker.io/malavoda/smartshopper-user_service:dev
+          name: userservice
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - userservice
+        from:
+          kind: ImageStreamTag
+          name: userservice:latest
+      type: ImageChange

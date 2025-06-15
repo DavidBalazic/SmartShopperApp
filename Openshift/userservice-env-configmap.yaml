@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  ConnectionStrings__DefaultConnection: Host=postgres-user;Port=5432;Database=User;Username=david;Password=david
+  JwtSettings__SecretKey: ThisIsAReallyStrongAndLongRandomKey!@#123456
+  Kafka__KafkaBroker: kafka:9092
+  Services__ProductService__BaseAddress: http://productservice:50051
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: userservice-env
+  name: userservice-env

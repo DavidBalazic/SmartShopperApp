@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  searchservice.json: "{\n    \"name\": \"Search Service\",\n    \"api_id\": \"search-service\",\n    \"org_id\": \"default\",\n    \"definition\": {\n      \"location\": \"header\",\n      \"key\": \"x-api-version\"\n    },\n    \"version_data\": {\n      \"not_versioned\": true,\n      \"versions\": {\n        \"default\": {\n          \"name\": \"default\",\n          \"use_extended_paths\": true\n        }\n      }\n    },\n    \"proxy\": {\n      \"listen_path\": \"/search/\",\n      \"target_url\": \"http://searchservice:8000/\",\n      \"strip_listen_path\": true\n    },\n    \"active\": true,\n    \"use_keyless\": true\n}\n  "
+  userservice.json: "{\n    \"name\": \"User Service\",\n    \"api_id\": \"user-service\",\n    \"org_id\": \"default\",\n    \"definition\": {\n      \"location\": \"header\",\n      \"key\": \"x-api-version\"\n    },\n    \"version_data\": {\n      \"not_versioned\": true,\n      \"versions\": {\n        \"default\": {\n          \"name\": \"default\",\n          \"use_extended_paths\": true\n        }\n      }\n    },\n    \"proxy\": {\n      \"listen_path\": \"/api/\",\n      \"target_url\": \"http://userservice:8080/api/\",\n      \"strip_listen_path\": true\n    },\n    \"active\": true,\n    \"use_keyless\": true\n}  "
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: tyk-gateway
+  name: tyk-gateway-cm1

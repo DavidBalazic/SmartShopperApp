@@ -1,0 +1,16 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    io.kompose.service: kong-db
+  name: kong-db
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - from:
+        kind: DockerImage
+        name: postgres:13
+      name: "13"
+      referencePolicy:
+        type: ""

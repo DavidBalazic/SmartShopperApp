@@ -1,0 +1,36 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: searchservice
+  name: searchservice
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: searchservice
+  template:
+    metadata:
+      labels:
+        io.kompose.service: searchservice
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: searchservice-env
+          image: docker.io/malavoda/smartshopper-search_service:dev
+          name: searchservice
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - searchservice
+        from:
+          kind: ImageStreamTag
+          name: searchservice:latest
+      type: ImageChange

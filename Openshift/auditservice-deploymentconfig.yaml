@@ -1,0 +1,36 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: auditservice
+  name: auditservice
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: auditservice
+  template:
+    metadata:
+      labels:
+        io.kompose.service: auditservice
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: auditservice-env
+          image: docker.io/malavoda/smartshopper-audit_service:dev
+          name: auditservice
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - auditservice
+        from:
+          kind: ImageStreamTag
+          name: auditservice:latest
+      type: ImageChange

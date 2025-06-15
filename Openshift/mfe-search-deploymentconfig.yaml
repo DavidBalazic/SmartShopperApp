@@ -1,0 +1,36 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: mfe-search
+  name: mfe-search
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: mfe-search
+  template:
+    metadata:
+      labels:
+        io.kompose.service: mfe-search
+    spec:
+      containers:
+        - env:
+            - name: REACT_APP_SEARCH_SERVICE
+              value: http://kong:8000
+          image: docker.io/malavoda/smartshopper-mfe_search:dev
+          name: mfe-search
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - mfe-search
+        from:
+          kind: ImageStreamTag
+          name: mfe-search:latest
+      type: ImageChange

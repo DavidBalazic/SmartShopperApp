@@ -1,0 +1,16 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    io.kompose.service: mfe-user
+  name: mfe-user
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - from:
+        kind: DockerImage
+        name: mfe-user
+      name: latest
+      referencePolicy:
+        type: ""

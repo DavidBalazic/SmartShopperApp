@@ -1,0 +1,16 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    io.kompose.service: tyk-redis
+  name: tyk-redis
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - from:
+        kind: DockerImage
+        name: redis:4.0-alpine
+      name: 4.0-alpine
+      referencePolicy:
+        type: ""

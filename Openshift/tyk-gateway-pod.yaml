@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    io.kompose.service: tyk-gateway
+  name: tyk-gateway
+spec:
+  containers:
+    - image: tykio/tyk-gateway:latest
+      name: tyk-gateway
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      volumeMounts:
+        - mountPath: /opt/tyk-gateway/tyk.conf
+          name: tyk-gateway-cm0
+          subPath: tyk.conf
+        - mountPath: /opt/tyk-gateway/apps
+          name: tyk-gateway-cm1
+  restartPolicy: OnFailure
+  volumes:
+    - configMap:
+        items:
+          - key: tyk.conf
+            path: tyk.conf
+        name: tyk-gateway-cm0
+      name: tyk-gateway-cm0
+    - configMap:
+        name: tyk-gateway-cm1
+      name: tyk-gateway-cm1

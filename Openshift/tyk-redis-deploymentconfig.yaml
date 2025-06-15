@@ -1,0 +1,33 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: tyk-redis
+  name: tyk-redis
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: tyk-redis
+  template:
+    metadata:
+      labels:
+        io.kompose.service: tyk-redis
+    spec:
+      containers:
+        - image: ' '
+          name: tyk-redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - tyk-redis
+        from:
+          kind: ImageStreamTag
+          name: tyk-redis:4.0-alpine
+      type: ImageChange

@@ -1,0 +1,52 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: kafka
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: kafka
+  template:
+    metadata:
+      labels:
+        io.kompose.service: kafka
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka:9092
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper:2181
+          image: ' '
+          livenessProbe:
+            exec:
+              command:
+                - kafka-topics
+                - --bootstrap-server
+                - localhost:9092
+                - --list
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 10
+          name: kafka
+          ports:
+            - containerPort: 9092
+              protocol: TCP
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - kafka
+        from:
+          kind: ImageStreamTag
+          name: kafka:7.5.0
+      type: ImageChange
