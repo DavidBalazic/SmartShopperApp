@@ -197,7 +197,7 @@ services:
   # Frontend
   mfe-user:
     build:
-      context: ./frontend/mfe-user
+      context: ./micro-frontends/mfe-user
       dockerfile: Dockerfile
     ports:
       - "3003:80"
@@ -206,7 +206,7 @@ services:
 
   mfe-search:
     build:
-      context: ./frontend/mfe-search
+      context: ./micro-frontends/mfe-search
       dockerfile: Dockerfile
     ports:
       - "3002:80"
@@ -215,7 +215,7 @@ services:
 
   shell:
     build:
-      context: ./frontend/shell
+      context: ./micro-frontends/shell
       dockerfile: Dockerfile
     ports:
       - "3000:80"

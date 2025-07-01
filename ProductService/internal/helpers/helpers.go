@@ -35,6 +35,7 @@ func ToProtoProduct(p models.Product) *proto.Product {
 		Unit:         p.Unit,
 		Store:        p.Store,
 		PricePerUnit: p.PricePerUnit,
+		ImageUrl:     p.ImageUrl,
 	}
 }
 
