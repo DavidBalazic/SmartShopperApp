@@ -194,34 +194,43 @@ services:
     ports:
       - "5433:5432"
 
-  # Frontend
-  mfe-user:
+  frontend:
     build:
-      context: ./micro-frontends/mfe-user
+      context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3003:80"
-    environment:
-      REACT_APP_USER_SERVICE: http://kong:8000/api/user
-
-  mfe-search:
-    build:
-      context: ./micro-frontends/mfe-search
-      dockerfile: Dockerfile
-    ports:
-      - "3002:80"
-    environment:
-      REACT_APP_SEARCH_SERVICE: http://kong:8000
-
-  shell:
-    build:
-      context: ./micro-frontends/shell
-      dockerfile: Dockerfile
+    env_file:
+      - ./frontend/.env
     ports:
       - "3000:80"
-    environment:
-      REACT_APP_SEARCH_APP_URL: http://mfe-search
-      REACT_APP_USER_APP_URL: http://mfe-user
+
+  # Micro Frontends
+  # Uncomment the following sections to enable micro frontends
+  # mfe-user:
+  #   build:
+  #     context: ./micro-frontends/mfe-user
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3003:80"
+  #   env_file:
+  #     - ./micro-frontends/mfe-user/.env
+
+  # mfe-search:
+  #   build:
+  #     context: ./micro-frontends/mfe-search
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3002:80"
+  #   env_file:
+  #     - ./micro-frontends/mfe-search/.env
+
+  # shell:
+  #   build:
+  #     context: ./micro-frontends/shell
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:80"
+  #   env_file:
+  #     - ./micro-frontends/shell/.env
 
 volumes:
   rabbitmq_data:
