@@ -76,7 +76,7 @@ SmartShopperApp supports two frontend architectures:
 
 ### Prerequisites
 
-- Docker & Docker Compose
+- Docker
 
 ### Environment Setup
 
