@@ -101,7 +101,7 @@ Edit each `.env` file and provide valid values.
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/SmartShopperApp.git
+git clone https://github.com/DavidBalazic/SmartShopperApp.git
 cd SmartShopperApp
 docker-compose up --build
 ```
